@@ -11,7 +11,7 @@ from sklearn.utils.multiclass import check_classification_targets
 from MKLpy.arrange import summation
 from MKLpy.regularization import tracenorm
 from MKLpy.lists import SFK_generator, HPK_generator
-from MKLpy.utils.validation import check_kernel_list
+from MKLpy.utils.validation import check_KL_Y
 import numpy as np
 
 from cvxopt import matrix, solvers, mul, spdiag
@@ -21,9 +21,13 @@ class rMKL(BaseEstimator, ClassifierMixin, MKL):
     def __init__(self, C=1,D=1):
         self.C = C
         self.D = D
+        self.how_to = summation
     
 
     def fit(self,K,Y):
+        self._fit(K,Y)
+    
+    def arrange_kernel(self,K,Y):
         Ks = matrix(summation(K))
         YY = spdiag(matrix(Y))
         n = len(Y)
@@ -54,7 +58,12 @@ class rMKL(BaseEstimator, ClassifierMixin, MKL):
         
         #fine primo step
         
-        Ks = matrix(summation(K,self.weights))
+        Ks = summation(K,self.weights)
+        return Ks
+        
+    def _fit(self,K,Y):
+        Ks = arrange_kernel(K,Y)
+        Ks = matrix(Ks)
         K1 = (1.0-self.D)* YY*Ks*YY + spdiag([self.D] * n)
         #K2 = self.C * Ks * self.D
         K2 = (1.0-self.D)* self.C * Ks * self.D + spdiag([self.D] * n) * self.C
@@ -81,8 +90,6 @@ class rMKL(BaseEstimator, ClassifierMixin, MKL):
          
         YY = spdiag(matrix(self.Y))
         ker_matrix = matrix(summation(K, self.weights))
-        #z = ker_matrix*YY*self.gamma + self.C * ker_matrix*self.alpha
-        #z = ker_matrix*YY*self.gamma + ker_matrix*self.alpha
         z = ker_matrix*YY*self.gamma
         return np.array(list(z))
 

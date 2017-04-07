@@ -1,19 +1,48 @@
-'''
+"""
+.. codeauthor:: Ivano Lauriola <ivanolauriola@gmail.com>
 
-tests over MKLpy.kernel_list
+================================
+Check kernel_list and generators
+================================
 
-'''
+.. currentmodule:: MKLpy.test.check_list
+
+tests over kernel_list, HPK_generator and SFK_generator from MKLpy.lists
+
+The following is a complete list of tests performerd:
+* initialize an empty kernel_list;
+* initialize a kernel_list using SFK_generator;
+* check if make_a_list(n) performs exactly n kernels;
+* check if a kernel_list generated from another kernel_list contains the same kernels;
+* check if shape works correctly;
+* check if shape works correctly when the list is generated from another kernel_list;
+* check if __getitem__ returns a kernel matrix;
+* check if __getitem__ returns an ndarray with proper dimension;
+* check if the first kernel from HPK_generator is a linear kernel;
+* check if the (i+1)-th kernel from HPK_generator is an HPK with degree i+1;
+* check if SFK_generator works with default params;
+* check if SFK_generator use the correct number of features;
+* check if SFK_generator returns a kernel performed with the proper kernel function an parameters;
+* check if SFK_generator works well with custom parameters;
+* check if SFK_generator works well with a callable as input;
+* check if to_array() returns an ndarray with proper shapes;
+* check if to_array() return the correct array of kernels;
+* check the concatenation of 2 kernel_list;
+* check if multiplication and division works correctly in kernel_list with a scalar;
+* (NOT PASS) check if multiplication and division works correctly in kernel_list with a vector;
+* check if kernel_list.edit function works correctly with a simple transformation, normalization and kernel centering;
+
+Note: all checks are performed using 1 and 2 (train and test) kernel matrices.
+"""
 
 from sklearn.metrics.pairwise import linear_kernel, polynomial_kernel, rbf_kernel
 from sklearn.datasets import load_iris,load_digits
-from sklearn.cross_validation import train_test_split
+from sklearn.model_selection import train_test_split
 import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal, assert_equal
 import time
 import sys
 
-sys.path.insert(0,'..')
-#from utils import kernel_list, HPK_generator, SFK_generator, kernel_normalization, kernel_centering
 from MKLpy.lists import kernel_list, HPK_generator, SFK_generator
 from MKLpy.regularization import kernel_normalization, kernel_centering
 
@@ -130,6 +159,32 @@ def check_SFKs():
     assert_array_almost_equal(kl[2],rbf_kernel(X_tr[:,kl.__getitem__(2,'feature')],gamma=2))
     return
 
+def check_SFKs2():
+    #check a training list
+    kl = SFK_generator(X_tr,func='rbf').make_a_list(20)
+    ka = kl.to_array()
+    assert_array_almost_equal(kl[0],ka[0])
+    assert_array_almost_equal(kl[3],ka[3])
+    #check a test list
+    #kt = SFK_generator(X_tr,X_te).make_a_list(10)
+    kt = kernel_list(X_tr,X_te,kl)
+    kb = kt.to_array()
+    assert_array_almost_equal(kt[0],kb[0])
+    assert_array_almost_equal(kt[3],kb[3])
+    #test with the selected feature list
+    fl = kl.__getitem__(3,'feature')
+    k = rbf_kernel(X_tr[:,fl])
+    assert_array_almost_equal(k,kl[3])
+    #test with the function in list
+    ff = kl.__getitem__(3,'func')
+    k = ff(X_tr[:,fl],X_tr[:,fl])
+    assert_array_equal(k,kl[3])
+    #check that train and test use the same functions
+    assert_array_equal(kl.__getitem__(2,'feature'),kt.__getitem__(2,'feature'))
+    assert_array_equal(kl.__getitem__(7,'feature'),kt.__getitem__(7,'feature'))
+    kt.T = X_tr #one trick to 
+    assert_array_equal(kt[1],kl[1])
+
 def check_toarray():
     kl = HPK_generator(X_tr).make_a_list(n)
     ka = kl.to_array()
@@ -204,27 +259,19 @@ def check_complex_operations():
     #check if normal division works and it does not change the operands
     v = [i for i in range(1,11)]
     kl1 = HPK_generator(X_tr).make_a_list(n)
-    k = kl1[3]
-    print k[:6][:,:6]
-    print
-    print kl1[3][:6][:,:6]
+    k = kl1[3].copy()
     kl2 = kl1 / v
-    print
-    print kl2[3][:6][:,:6]
-    print v
     assert_array_almost_equal(kl2[9],kl1[9]/v[9])
-    assert_array_almost_equal(kl2[9],kl2[0])
-    assert_array_almost_equal(kl2[0],kl1[0])
-    assert_array_almost_equal(kl2[3],k/v[3])
-    #assert_array_almost_equal(kl1[3],k/v[3])
-
-    kk = kl1[3]
-    assert_array_almost_equal(k,kk)
+    assert_array_almost_equal(kl2[0],kl1[0]/v[0])
     assert_array_almost_equal(kl2[6],kl1[6]/v[6])
+    assert_array_almost_equal(kl2[3],k/v[3])
+    #normal div does not affect first operand
+    assert_array_almost_equal(kl1[3],k)
+
     #check if idiv works correctly
     kl1 /= v
     assert_array_almost_equal(kl1[2],kl2[2])
-    #check if mul work correctly
+    #check if mul works correctly
     kl1 = SFK_generator(X_tr).make_a_list(n)
     k = kl1[1]
     kl2 = kl1 * v
@@ -237,43 +284,7 @@ def check_complex_operations():
     assert_array_almost_equal(kl1[2],kl2[2])
     return
 
-def check_HPKs():
-    #check a training list
-    kl = HPK_generator(X_tr).make_a_list(10)
-    assert_array_almost_equal(kl[0],linear_kernel(X_tr))
-    assert_array_almost_equal(kl[2],polynomial_kernel(X_tr,gamma=1,coef0=0,degree=3))
-    assert_array_almost_equal(kl[5],polynomial_kernel(X_tr,gamma=1,coef0=0,degree=6))
-    #check a test list
-    kt = HPK_generator(X_tr,X_te).make_a_list(10)
-    assert_array_almost_equal(kt[0],linear_kernel(X_te,X_tr))
-    assert_array_almost_equal(kt[2],polynomial_kernel(X_te,X_tr,gamma=1,coef0=0,degree=3))
-    assert_array_almost_equal(kt[5],polynomial_kernel(X_te,X_tr,gamma=1,coef0=0,degree=6))
 
-def check_SFKs():
-    #check a training list
-    kl = SFK_generator(X_tr,func='rbf').make_a_list(20)
-    ka = kl.to_array()
-    assert_array_almost_equal(kl[0],ka[0])
-    assert_array_almost_equal(kl[3],ka[3])
-    #check a test list
-    #kt = SFK_generator(X_tr,X_te).make_a_list(10)
-    kt = kernel_list(X_tr,X_te,kl)
-    kb = kt.to_array()
-    assert_array_almost_equal(kt[0],kb[0])
-    assert_array_almost_equal(kt[3],kb[3])
-    #test with the selected feature list
-    fl = kl.__getitem__(3,'feature')
-    k = rbf_kernel(X_tr[:,fl])
-    assert_array_almost_equal(k,kl[3])
-    #test with the function in list
-    ff = kl.__getitem__(3,'func')
-    k = ff(X_tr[:,fl],X_tr[:,fl])
-    assert_array_equal(k,kl[3])
-    #check that train and test use the same functions
-    assert_array_equal(kl.__getitem__(2,'feature'),kt.__getitem__(2,'feature'))
-    assert_array_equal(kl.__getitem__(7,'feature'),kt.__getitem__(7,'feature'))
-    kt.T = X_tr #one trick to 
-    assert_array_equal(kt[1],kl[1])
 
 def check_edit():
     #check 'edit' with a simple transformation
@@ -296,42 +307,27 @@ def check_edit():
 
 
 def all_check():
-    '''
+    
     yield check_HPKs
     yield check_SFKs
+    yield check_SFKs2
     yield check_edit
+
     yield check_init
     yield check_generated
     yield check_init_from_klist
     yield check_shape
     yield check_getitem
     yield check_toarray
+
     yield check_concatenation
-    '''
-    #yield check_simple_operations
-    
+    yield check_simple_operations
     yield check_complex_operations
 
 
 def check_list():
     for check in all_check():
         check()
-
-'''
-
-
-#time used
-t1 = time.time()
-for x in range(20):
-    a = polynomial_kernel(X_tr,X_tr,gamma=1,coef0=0,degree=x)
-t2 = time.time()
-print t2-t1
-l = HPK_generator(X_tr).make_a_list(20)
-for x in range(20):
-    a = l[x]
-t3 = time.time()
-print t3-t2
-'''
 
 
 

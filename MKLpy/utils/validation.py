@@ -1,32 +1,59 @@
-# -*- coding: latin-1 -*-
- 
+"""
+.. codeauthor:: Ivano Lauriola <ivanolauriola@gmail.com>
+
+================
+Input validation
+================
+
+.. currentmodule:: MKLpy.utils.validation
+
+This sub-package contains tool to check the input of a MKL algorithm.
+
+"""
+from scipy.sparse import issparse
 from sklearn.utils import check_array
-import numpy as np
 from cvxopt import matrix
+import numpy as np
+import types
  
-#controlla se X è effettivamente una lista di kernel
-def check_kernel_list(X):
-     
-    if not hasattr(X,'__len__'):
+ 
+def check_KL_Y(K,Y):
+    """check if the input is a valid kernel list compliant with MKLpy MKL algorithms.
+
+    Parameters
+    ----------
+    K : (l,n,m) array_like,
+             where *l* is the number of kernels in list and *(n,m)* is the shape of kernels.
+
+    Returns
+    -------
+    K_ : (l,n,m) ndarray or kernel_list.
+
+    Notes
+    -----
+    The evaluation is not exaustive due to complexity of a regular list of kernels.
+    """
+    #TODO
+    if not hasattr(K,'__len__'):
         raise TypeError("list of kernels must be array-like")
-     
-    if type(X) == list:
-        X = np.array(X)
-    elif X.__class__.__name__ == 'kernel_list':
-        X = X
-    elif type(X) != np.array:
-        X = np.array(list(X))
+    
+    if type(K) == list:
+        K = np.array(K)
+    elif K.__class__.__name__ == 'kernel_list':
+        K = K
+    elif type(K) != np.array:
+        K = np.array(list(K))
 
     #return X
 
-    if len(X.shape) == 2:
+    if len(K.shape) == 2:
         raise TypeError("Expected a list of kernels, found a matrix")
-    if len(X.shape) != 3:
+    if len(K.shape) != 3:
         raise TypeError("Expected a list of kernels, found unknown")
-    a = X[0]
+    a = K[0]
     check_array(a, accept_sparse='csr', dtype=np.float64, order="C")
     
-    if a.shape != (X.shape[1],X.shape[2]):
+    if a.shape != (K.shape[1],K.shape[2]):
         raise TypeError("Incompatible dimensions")
     '''
     if X[0].shape[1] != X.shape[1]:
@@ -35,4 +62,36 @@ def check_kernel_list(X):
     if len(X) > 1 and X[0].shape != X[1].shape:
         raise TypeError("Incompatible dimensions")
     '''
-    return X
+    return K
+
+
+def check_squared(K):
+    if K.shape[0] != K.shape[1]:
+        raise ValueError("K must be squared; shape obtained: "+str(K.shape))
+    return K.todense() if issparse(K) else K
+
+
+def check_K_Y(K,Y):
+    K = check_squared(K)
+    if len(Y) != K.shape[0]:
+        raise ValueError("K and Y have different length")
+    return K,np.array(Y)
+
+def check_X_T(X,T):
+    T = X if type(T) == types.NoneType else T
+    if X.shape[1] != T.shape[1]:
+        raise ValueError("X and T have different features")
+    return X,T
+
+
+
+def check_cv(cv,Y):
+    '''cv e' una lista di split'''
+    #TODO
+    pass
+
+
+def check_scoring(estimator, scoring):
+    #TODO
+    return scoring
+

@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-@author: Michele Donini, Lauriola Ivano
+.. codeauthor:: Michele Donini <>
+.. codeauthor:: Ivano Lauriola <ivanolauriola@gmail.com>
+
+
 
 """
 
@@ -10,7 +13,7 @@ from cvxopt import matrix
 from sklearn.metrics.pairwise import polynomial_kernel
 from sklearn import svm
 #from utils import HPK_generator
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import roc_auc_score, accuracy_score
 
 class OneVsOneMKLClassifier():
     
@@ -67,25 +70,25 @@ class OneVsOneMKLClassifier():
         # LEARNING THE MODELS
         wmodels = {}
         combinations = {}
-        functional_form = self.clf1.how_to()
-        
+        functional_form = self.clf1.how_to
+
+
         for dicho in list_of_dichos:
             ind = list_of_indices_train[dicho][0] + list_of_indices_train[dicho][1]
             cc = self.clf1.__class__(**self.clf1.get_params())
             cc.kernel = 'precomputed'
-            cc = cc.fit(np.array([kk[ind][:,ind]  for kk in K_tr]),
+            #cc = cc.fit(np.array([kk[ind][:,ind]  for kk in K_tr]),
+            ker_matrix = cc.arrange_kernel(np.array([kk[ind][:,ind]  for kk in K_tr]),
                        np.array(list_of_labels_train[dicho]))
             wmodels[dicho] = [w / sum(cc.weights) for w in cc.weights]#da sistemare per astrarre
             if self.verbose:
                 print 'Model generated for the dichotomy:',dicho[0],'vs',dicho[1]
                 print 'Weights:',len(cc.weights),sum(cc.weights),cc.weights
                 sys.stdout.flush()
-            combinations[dicho] = cc.ker_matrix
+            combinations[dicho] = ker_matrix#cc.ker_matrix
             del cc
         
-        # RELEASE MEMORY
-        #del k_list
-
+        self.kernels = combinations #mi serve solo per alcuni test
         # Train SVM
         if self.verbose:
             print 'SVM training phase...'
@@ -122,7 +125,7 @@ class OneVsOneMKLClassifier():
             idx = self.list_of_indices[dicho][0]+self.list_of_indices[dicho][1]
             w = self.wmodels[dicho]
             k = self.functional_form(np.array([kk[:,idx] for kk in K_te]),w)
-            predicts[dicho] = self.svcs[dicho].predict(k)
+            predicts[dicho] = self.svcs[dicho].decision_function(k)
             #print predicts[dicho][:20]
             #single_accuracy[dicho] = accuracy_score([1.0 if i in dicho[0] else -1.0 for i in Y_te], list(predicts[dicho]))
             #if self.verbose:
@@ -147,4 +150,39 @@ class OneVsOneMKLClassifier():
         return y_pred
         
         
+# for experiments
+
+    def predict_test(self,K_te, Y_te):
+        predicts = {}
+        wmodels = self.wmodels
+        single_accuracy = {}
+
+        for dicho in self.list_of_dichos:
+            idx = self.list_of_indices[dicho][0]+self.list_of_indices[dicho][1]
+            w = self.wmodels[dicho]
+            k = self.functional_form(np.array([kk[:,idx] for kk in K_te]),w)
+            predicts[dicho] = self.svcs[dicho].predict(k)
+            
+            #single_accuracy[dicho] = accuracy_score([1.0 if i in dicho[0] else -1.0 for i in Y_te], list(predicts[dicho]))
+            single_accuracy[dicho] = roc_auc_score([1.0 if i in dicho[0] else -1.0 for i in Y_te], list(predicts[dicho]))
+            if self.verbose or True:
+                print 'Accuracy test:',single_accuracy[dicho]
+                #print accuracy_score([1.0 if i in dicho[0] else -1.0 for i in Y_te], list(predicts[dicho]), normalize=False),'/',len(Y_te)
+        return single_accuracy
+        
+
+        # Voting   
+        #nn = len(Y_te)
+        nn = len(K_te[0])
+        points = np.zeros((nn,self.n_classes),dtype=int)
+        for dicho in self.list_of_dichos:
+            for ir,r in enumerate(predicts[dicho]):
+                if r > 0:
+                    points[ir,dicho[0][0]] += 1
+                else:
+                    points[ir,dicho[1][0]] += 1
+
+        y_pred = np.argmax(points,1)
+        sys.stdout.flush()
+        return y_pred
         

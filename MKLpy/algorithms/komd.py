@@ -33,7 +33,7 @@ class KOMD(BaseEstimator, ClassifierMixin):
     Parameters
     ----------
     lam : float, (default=0.1)
-        Specifies the lambda value, between 0 and 1.
+        Specifies the lambda value, between 0.0 and 1.0.
     
     kernel : optional (default='linear')
         Specifies the kernel function used by the algorithm.
@@ -196,7 +196,8 @@ class KOMD(BaseEstimator, ClassifierMixin):
 
         Kf = self.__kernel_definition__()
         ker_matrix = matrix(Kf(X,X).astype(np.double))
-        KLL = (1.0 / (gamma_unif.T * YY * ker_matrix * YY * gamma_unif)[0])*(1.0-self.lam)*YY*ker_matrix*YY
+        #KLL = (1.0 / (gamma_unif.T * YY * ker_matrix * YY * gamma_unif)[0])*(1.0-self.lam)*YY*ker_matrix*YY
+        KLL = (1.0-self.lam)*YY*ker_matrix*YY
         LID = matrix(np.diag([self.lam * (npos * nneg / (npos+nneg))]*len(Y)))
         Q = 2*(KLL+LID)
         p = matrix([0.0]*len(Y))

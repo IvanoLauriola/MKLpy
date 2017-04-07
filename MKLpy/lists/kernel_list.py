@@ -2,19 +2,19 @@
 from cvxopt import matrix
 import numpy as np
 from sklearn.metrics.pairwise import linear_kernel
+import types
 
 class kernel_list():
     def __init__(self, X, T=None, k_list=None):
         self.X = X
-        if T==None:
-            T = X
+        T = X if type(T)==types.NoneType else T
         self.T = T
         self.func_list = []
         self.feat_list = []
         self.shape = (0,T.shape[0],X.shape[0])
         self.transform = lambda X : X
         
-        if k_list != None:
+        if k_list:
             self.func_list = [f for f in k_list.func_list]
             self.feat_list = [f for f in k_list.feat_list]
             self.shape = k_list.shape
@@ -62,16 +62,10 @@ class kernel_list():
     def __div__(self, o):
         c = self._check_op(o)
         l = kernel_list(self.X,self.T,self)
-        old = [ff for ff in l.func_list]
-        ppp = [lambda X,Y : old[i](X,Y) / c[i] for i in range(self.shape[0])]
-        l.func_list = ppp
+        old = l.func_list
+        l.func_list = [lambda X,T,i=i : old[i](X,T)/c[i] for i in range(self.shape[0])]
         return l
-        for i in range(self.shape[0]):
-            p = i
-            oldf = l.__getitem__(p,'func')
-            den = c[p]
-            l.func_list[p] = lambda X,Y : oldf(X,Y) / den
-        return l
+
     '''
     def __floordiv__(self, o):
         return self.__div__(o)
@@ -83,16 +77,14 @@ class kernel_list():
         return self.__div__(list(1.0/np.array(c)))
     
     def _check_op(self,o):
-        if not hasattr(o,'__len__'):
-            return np.full(self.shape[0],o)
-        return o
+        return o if hasattr(o,'__len__') else np.full(self.shape[0],o)
     
     def __idiv__(self,o):
         c = self._check_op(o)
-        for i in range(self.shape[0]):
-            oldf = self.__getitem__(i,'func')
-            self.func_list[i] = lambda X,Y : oldf(X,Y) / c[i]
+        old = self.func_list
+        self.func_list = [lambda X,T,i=i : old[i](X,T)/c[i] for i in range(self.shape[0])]
         return self
+
     def __imul__(self,o):
         c = self._check_op(o)
         return self.__idiv__(list(1.0/np.array(c)))

@@ -1,10 +1,38 @@
+"""
+.. codeauthor:: Ivano Lauriola <ivanolauriola@gmail.com>
+
+==========
+Evaluation
+==========
+
+.. currentmodule:: MKLpy.metrics.evaluate
+
+This module contains functions that given a kernel returns a value calculated
+with a metric.
+These functions can be used also in heuristic algorithms, for example we can
+assign a value to each kernel in list using the radius of MEB, or the margin.
+
+"""
+
 import numpy as np
 from cvxopt import matrix,solvers,spdiag
+from MKLpy.utils.validation import check_squared, check_K_Y
 
-'''SOLO OPERAZIONI CHE DATO 1 KERNEL RESTITUISCONO UNA MISURA CALCOLATA SU UNA CERTA METRICA.
-Possono esser utilizzate come euristiche'''
+def radius(K):
+    """evaluate the radius of the MEB (Minimum Enclosing Ball) of examples in
+    feature space.
 
-def radius(K,Y=None):
+    Parameters
+    ----------
+    K : (n,n) ndarray,
+        the kernel that represents the data.
+
+    Returns
+    -------
+    r : np.float64,
+        the radius of the minimum enclosing ball of examples in feature space.
+    """
+    check_squared(K)
     n = K.shape[0]
     P = 2 * matrix(K)
     p = -matrix([K[i,i] for i in range(n)])
@@ -14,10 +42,23 @@ def radius(K,Y=None):
     b = matrix([1.0])
     solvers.options['show_progress']=False
     sol = solvers.qp(P,p,G,h,A,b)
-    #return abs(sol['primal objective'])
     return np.sqrt(abs(sol['primal objective']))
 
 def margin(K,Y):
+    """evaluate the margin in a classification problem of examples in feature space.
+    If the classes are not linearly separable in feature space, then the
+    margin obtained is 0.
+
+    Note that it works only for binary tasks.
+
+    Parameters
+    ----------
+    K : (n,n) ndarray,
+        the kernel that represents the data.
+    Y : (n) array_like,
+        the labels vector.
+    """
+    check_K_Y(K,Y)
     n = Y.shape[0]
     YY = spdiag(list(Y))
     P = 2*(YY*matrix(K)*YY)
@@ -31,35 +72,90 @@ def margin(K,Y):
     sol = solvers.qp(P,p,G,h,A,b)
     return np.sqrt(sol['primal objective'])/2.0#prendo la distanza dall'iperpiano
 
+def margin_multiclass(K,Y,method='ovr'):
+    margins = []
+    n = len(Y)
+    for y in np.unique(Y):
+        labels = np.array([1 if Y[i]==y else -1 for i in range(n)])
+        margins.append(margin(K,labels))
+    return margins
 
 def ratio(K,Y):
-    #radius^2/rho^2
-    n = Y.shape[0]    
+    """evaluate the ratio between the radius of MEB and the margin in feature space.
+    this ratio is defined as
+    .. math:: \frac{R^2}{n\cdot\rho^2}
+
+    Parameters
+    ----------
+    K : (n,n) ndarray,
+        the kernel that represents the data.
+    Y : (n) array_like,
+        the labels vector.
+
+    Returns
+    -------
+    v : np.float64,
+        the value of the ratio
+    """
+    check_K_Y(K,Y)
+    n = len(Y)
     r2 = radius(K)**2
     m2 = (margin(K,Y)*1)**2
     return (r2/m2)/n
     return ((radius(K)**2)/(margin(K,Y)**2))/n
 
 
-
-
 def trace(K):
-    if K.shape[0] != K.shape[1]:
-        raise TypeError("the trace is available only for square matrices")
+    """return the trace of the kernel as input.
+
+    Parameters
+    ----------
+    K : (n,n) ndarray,
+        the kernel that represents the data.
+
+    Returns
+    -------
+    t : np.float64,
+        the trace of *K*
+    """
+    check_squared(K)
     return sum([K[i,i] for i in range(K.shape[0])])
 
 def frobenius(K):
+    """return the frobenius-norm of the kernel as input.
+
+    Parameters
+    ----------
+    K : (n,n) ndarray,
+        the kernel that represents the data.
+
+    Returns
+    -------
+    t : np.float64,
+        the frobenius-norm of *K*
+    """
+    check_squared(K)
     return np.sqrt(np.sum(K**2))
 
-def spectral_ratio(K,Y=None,norm=True):
-    '''normalized spectral ratio'''
+def spectral_ratio(K,norm=True):
+    """return the spectral ratio of the kernel as input.
+
+    Parameters
+    ----------
+    K : (n,n) ndarray,
+        the kernel that represents the data.
+    norm : bool=True,
+           True if we want the normalized spectral ratio.
+    
+    Returns
+    -------
+    t : np.float64,
+        the spectral ratio of *K*, normalized iif *norm=True*
+    """
+    check_squared(K)
     n = K.shape[0]
     c = trace(K)/frobenius(K)
-    if norm:
-        return (c-1)/np.sqrt(n)-1
-    else:
-        return c
-
+    return (c-1)/(np.sqrt(n)-1) if norm else c
 
 
 

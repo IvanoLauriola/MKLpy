@@ -1,7 +1,5 @@
 import numpy as np
 
-'''all other utility here'''
-
 def UCI(data): #Data: UCI file
     '''Import an UCI format file'''
     f = open('datasets/'+data)

@@ -3,6 +3,7 @@ import numpy as np
 #from kernel_list import kernel_list as klist
 from kernel_list import kernel_list as klist
 from sklearn.metrics.pairwise import linear_kernel, polynomial_kernel, rbf_kernel
+import types
 
 class generator():
     def next(self):
@@ -37,13 +38,8 @@ class sequential_generator(generator):
         self.X = X
         self.T = T
         self.p = 1
-        if T != None:
-        #if not T:
-            self.base = linear_kernel(T,X)
-        else :
-            self.base = linear_kernel(X)
-            #self.base = np.zeros(X.shape[0],X.shape[1])
-    
+        T = X if type(T)==types.NoneType else T
+        self.base = linear_kernel(T,X)    
 
 class SFK_generator(weak_generator):
     '''Sample Feature Kernels'''
@@ -62,7 +58,7 @@ class HPK_generator(sequential_generator):
         return f, range(len(self.X[0])) 
 
 class SSK_generator(sequential_generator):
-
+    #TODO
     def next(self):
         raise NotImplementedError('not implemented yet')
 

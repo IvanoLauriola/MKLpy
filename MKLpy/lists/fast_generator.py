@@ -6,6 +6,8 @@ from math import sqrt,floor
 
 def fast_HPK(X,T=None,l=10):
     #!!!ONLY IF X AND T ARE NORMALIZED
+    #WARNING: this method is unstable due to the numeric approximation
+    # I advise to use the normal generators until this problem is not fixed.
     if T == None:
         T = X
     L = linear_kernel(T,X)
@@ -18,6 +20,9 @@ def fast_HPK(X,T=None,l=10):
     return np.array(klist)
 
 def fast_linearSFK(X, T=None, l=50, f=None, func='rbf'):
+    #This is an experimental method
+    #it needs more tests
+    
     if f==None:
         f = int(max(2,sqrt(X.shape[1])/2.0))
     
@@ -37,12 +42,3 @@ def fast_linearSFK(X, T=None, l=50, f=None, func='rbf'):
         k = klist[d-1] + L1 - L2
         klist.append(k)
     return np.array(klist)
-
-'''
-from sklearn.datasets import load_digits
-
-data = load_digits()
-X = data.data
-a = fast_linearSFK(X,X,l=10,f=3)
-print a.shape
-'''
