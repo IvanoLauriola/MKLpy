@@ -12,4 +12,4 @@ and MKL algorithm
 
 from stuff import *
 
-__all__ = ['UCI']
+__all__ = ['UCI', 'bignom']

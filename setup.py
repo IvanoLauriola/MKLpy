@@ -7,7 +7,7 @@ import os
 setup(
   name = 'MKLpy',
   packages = find_packages(exclude=['build', '_docs', 'templates']),
-  version = '0.1.2.1',
+  version = '0.1.3.2c',
   install_requires=[
         "numpy",
         "scipy",
@@ -51,7 +51,7 @@ This package contains:
 
 * metrics, such as kernel_alignment, radius...;
 
-* kernel functions, such as HPK and SSK.
+* kernel functions, such as HPK and boolean kernels (disjunctive, conjunctive, DNF, CNF).
 
 
 
@@ -76,31 +76,32 @@ examples
 
 **Generation phase**
 
-How to generate a list of functions and a list of kernel matrices using HPK kernel over the training data X.
-
-A list of kernel functions can be used if the memory is not enough to hold all kernel matrices, but often using an explicit list of kernel matrices is faster.
-
+It is possible to exploit some generators to make a list of kernels. In the following example we rescale and normalize data, then we create a list of 20 Homogeneous Polynomial Kernels with degrees 1..20
 
 .. code-block:: python
 
     from MKLpy.lists import HPK_generator
     from MKLpy.regularization import rescale_01, normalization
-    X = rescale_01(X)
+    X = rescale_01(X)   # X must be a dense matrix!!!
     X = normalization(X)
-    K_func_list = HPK_generator(X).make_a_list(20)
-    K_mat_list = K_func_list.to_array()
+    KL = HPK_generator(X).make_a_list(20).to_array()
 
+It is possible to create any custom lists
+
+.. code-block:: python
+
+    KL = np.array([np.dot(X,X.T)**d for d in range(1,21)])
+    
 
 **Training phase**
 
-A kernel list is used as input of MKL algorithms. The interface of a generic MKL algorithm is the same of all predictors in scikit-learn, with the difference that
-the .fit method can has a list of kernels as input instead a single one or a samples matrix.
+A kernel list is used as input of MKL algorithms. The interface of a generic MKL algorithm is the same of all predictors in scikit-learn, with the difference that the .fit method can has a list of kernels as input instead a single one or a samples matrix.
 
 .. code-block:: python
 
     from MKLpy.algorithms import EasyMKL
-    clf = EasyMKL(lam=0.1, tracenorm=False, kernel='precomputed')
-    clf = clf.fit(K_list,Y)     //K_func_list or K_mat_list
+    clf = EasyMKL(lam=0.1, kernel='precomputed')
+    clf = clf.fit(KL,Y)
 
 
 it is also possible to learn a kernel combination with an MKL algorithm and fit the model using another kernel machine, such as an SVC
@@ -108,43 +109,38 @@ it is also possible to learn a kernel combination with an MKL algorithm and fit 
 .. code-block:: python
 
     from sklearn.svm import SVC
-    ker_matrix = EasyMKL(lam=0.1, kernel='precomputed').arrange_kernel(K_list,Y)
+    ker_matrix = EasyMKL(lam=0.1, kernel='precomputed').arrange_kernel(KL,Y)
+    ker_matrix = np.array(ker_matrix)
     clf = SVC(C=2, kernel='precomputed').fit(ker_matrix,Y)
-
-
-**Training with samples matrix**
-
-Due to usability and user experience, it is possible to use a samples matrices as input, like an estimator in scikit-learn.
-
-.. code-block:: python
-
-    clf = EasyMKL(lam=0.1)
-    clf = clf.fit(X,Y)
 
 
 **Evaluation phase**
 
-If we use a samples matrix as input in an MKL algorithm, then the decision_function method can has the test samples matrix. Instead, if we use a precomputed list of kernels, we need to calculate a test kernel matrices for each kernel in list.
 
 .. code-block:: python
 
+    from MKLpy.model_selection import cv3
     from sklearn.metrics import roc_auc_score
-    K_list_tr = HPK_generator(Xtr).make_a_list(20).to_array()
-    K_list_te = HPK_generator(Xtr,Xte).make_a_list(20).to_array()
-    clf = EasyMKL(kernel='precomputed').fit(K_list_tr,Ytr)
-    y_score = EasyMKL.decision_function(K_list_te)
-    AUC = roc_auc_score(Yte,y_score)
+    from sklearn.model_selection import StratifiedShuffleSplit
+    train,test = StratifiedShuffleSplit(n_split=1).split(X,Y).next()
+    tr,te = cv3(train,test,n_kernels)
+    KL_tr = KL[tr]
+    KL_te = KL[te]
+    Y_tr  = Y[train]
+    Y_te  = Y[test]
+    clf = EasyMKL(kernel='precomputed').fit(KL_tr,Y_tr)
+    y_score = clf.decision_function(KL_te)
+    AUC = roc_auc_score(Y_te,y_score)
 
 
 **Some useful stuff**
 
-some metrics
+some metrics...
 
 .. code-block:: python
 
-    from MKLpy.metrics.pairwise import HPK_kernel as HPK
     from MKLpy.metrics import radius,margin
-    K = HPK(X, degree=4)
+    K = np.dot(X,X)**2
     rMEB = radius(K)   //rMEB is the radius of the closest hypersphere that contains the data
     m = margin(K,Y)     //m is the margin between the classes, it works only in binary context
 

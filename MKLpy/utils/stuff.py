@@ -1,4 +1,5 @@
 import numpy as np
+import mpmath as mp
 
 def UCI(data): #Data: UCI file
     '''Import an UCI format file'''
@@ -23,3 +24,11 @@ def UCI(data): #Data: UCI file
     for i in range(len(row)):
         X[row[i]][col[i]]=val[i]
     return np.array(X),np.array(Y)
+
+
+def bignom(n,k):
+	if n < k: return mp.mpf(0.0)
+	res = mp.mpf(1.0)
+	for i in range(0,k):
+		res = res * mp.mpf(float(n-i)/(k-i))
+	return res

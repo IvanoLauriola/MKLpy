@@ -1,11 +1,16 @@
-from base import MKL
+from base import MKL, AverageMKL
 from komd import KOMD
-from rMKL import rMKL
+from RMGD import RMGD
+from RMKL import RMKL
 from EasyMKL import EasyMKL
-from HeuristicMKLClassifier import HeuristicMKLClassifier
+#from HeuristicMKLClassifier import HeuristicMKLClassifier
 
 __all__ = ['EasyMKL',
+           'RMGD',
+           'RMKL',
            'KOMD',
            'MKL',
-           'rMKL',
-           'HeuristicMKLClassifier']
+           'AverageMKL'
+           #'rMKL',
+           #'HeuristicMKLClassifier'
+           ]

@@ -58,7 +58,7 @@ def margin(K,Y):
     Y : (n) array_like,
         the labels vector.
     """
-    check_K_Y(K,Y)
+    K, Y = check_K_Y(K,Y)
     n = Y.shape[0]
     YY = spdiag(list(Y))
     P = 2*(YY*matrix(K)*YY)
@@ -70,7 +70,7 @@ def margin(K,Y):
     b = matrix([[1.0],[1.0]],(2,1))
     solvers.options['show_progress']=False
     sol = solvers.qp(P,p,G,h,A,b)
-    return np.sqrt(sol['primal objective'])/2.0#prendo la distanza dall'iperpiano
+    return np.sqrt(sol['primal objective'])
 
 def margin_multiclass(K,Y,method='ovr'):
     margins = []
@@ -97,7 +97,7 @@ def ratio(K,Y):
     v : np.float64,
         the value of the ratio
     """
-    check_K_Y(K,Y)
+    K, Y = check_K_Y(K,Y)
     n = len(Y)
     r2 = radius(K)**2
     m2 = (margin(K,Y)*1)**2

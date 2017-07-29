@@ -1,3 +1,4 @@
+# -*- coding: latin-1 -*-
 """
 .. codeauthor:: Ivano Lauriola <ivanolauriola@gmail.com>
 
@@ -12,86 +13,67 @@ This sub-package contains tool to check the input of a MKL algorithm.
 """
 from scipy.sparse import issparse
 from sklearn.utils import check_array
+from sklearn.utils import column_or_1d, check_X_y
 from cvxopt import matrix
 import numpy as np
 import types
+from exceptions import SquaredKernelError
  
- 
-def check_KL_Y(K,Y):
-    """check if the input is a valid kernel list compliant with MKLpy MKL algorithms.
 
-    Parameters
-    ----------
-    K : (l,n,m) array_like,
-             where *l* is the number of kernels in list and *(n,m)* is the shape of kernels.
 
-    Returns
-    -------
-    K_ : (l,n,m) ndarray or kernel_list.
-
-    Notes
-    -----
-    The evaluation is not exaustive due to complexity of a regular list of kernels.
-    """
-    #TODO
-    if not hasattr(K,'__len__'):
-        raise TypeError("list of kernels must be array-like")
-    
-    if type(K) == list:
-        K = np.array(K)
-    elif K.__class__.__name__ == 'kernel_list':
-        K = K
-    elif type(K) != np.array:
-        K = np.array(list(K))
-
-    #return X
-
-    if len(K.shape) == 2:
-        raise TypeError("Expected a list of kernels, found a matrix")
-    if len(K.shape) != 3:
-        raise TypeError("Expected a list of kernels, found unknown")
-    a = K[0]
-    check_array(a, accept_sparse='csr', dtype=np.float64, order="C")
-    
-    if a.shape != (K.shape[1],K.shape[2]):
-        raise TypeError("Incompatible dimensions")
-    '''
-    if X[0].shape[1] != X.shape[1]:
-        print X[0].shape,' ',X.shape
-        raise TypeError("Incompatible dimensions")
-    if len(X) > 1 and X[0].shape != X[1].shape:
-        raise TypeError("Incompatible dimensions")
-    '''
-    return K
+def check_is_matrix(M):
+    '''check if M is a 2d matrix'''
+    check_array(M)
 
 
 def check_squared(K):
+    '''check if a kernel matrix K is squared'''
+    check_is_matrix(K)
     if K.shape[0] != K.shape[1]:
-        raise ValueError("K must be squared; shape obtained: "+str(K.shape))
+        raise SquaredKernelError(K.shape)
     return K.todense() if issparse(K) else K
 
 
 def check_K_Y(K,Y):
+    '''check if a kernel matrix K and labels vector Y are aligned'''
     K = check_squared(K)
-    if len(Y) != K.shape[0]:
-        raise ValueError("K and Y have different length")
-    return K,np.array(Y)
-
-def check_X_T(X,T):
-    T = X if type(T) == types.NoneType else T
-    if X.shape[1] != T.shape[1]:
-        raise ValueError("X and T have different features")
-    return X,T
+    K,Y = check_X_y(K,Y);
+    return K,Y
 
 
+def check_KL(KL):
+    '''check if KL is a kernels list'''
+    if not hasattr(KL,'__len__'):
+        raise TypeError("list of kernels must be array-like")
+    a = KL[0]
+    #check_X_y(a.T,Y, accept_sparse='csr', dtype=np.float64, order="C")
+    if len(a.shape) == 1:
+        raise TypeError("Expected a list of kernels, found matrix")
+    if len(a.shape) != 2:
+        raise TypeError("Expected a list of kernels, found unknown")
+    
+    #if a.shape != (KL.shape[1],KL.shape[2]):
+    #    raise TypeError("Incompatible dimensions")
+    return KL
 
-def check_cv(cv,Y):
-    '''cv e' una lista di split'''
-    #TODO
-    pass
+def check_KL_Y(KL,Y):
+    '''check if a squared kernels list KL and a label vector Y are aligned'''
+    KL = check_KL(KL)
+    #if KL.shape[2] != len(Y):   #TODO: use sklearn functions
+    #    raise TypeError('KL and Y are not aligned')
+    return KL,Y
 
 
-def check_scoring(estimator, scoring):
-    #TODO
-    return scoring
+
+
+def process_list(X,gen=None, T=None):
+    '''if X is a samples matrix, then generate a kernels list according to gen object'''
+    x0 = np.array(X[0]) # X può essere pure una lista
+    if len(x0.shape) == 2 :
+        KL = check_KL(X)  #KL can be a List and not ndarray
+    else :
+        T = X if type(T) == types.NoneType else T
+        gen = gen if gen else HPK_generator(n=10)
+        KL = gen.make_a_list(X,T)   # TOTO: use a generator to make a list
+    return KL
 

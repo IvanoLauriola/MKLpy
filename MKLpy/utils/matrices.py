@@ -3,10 +3,13 @@ import numpy as np
 def identity_kernel(n):
     return np.diag(np.ones(n))
     
-def diagonal(K):    # useless
-    return np.diagonal(K)
+def diagonal(L):    # useless
+    return np.diagonal(L)
 
-def ideal_kernel(Y, Z=None):
+def to_diagonal(K):
+    return np.diagonal([K[i,i] for i in range(K.shape[0])])
+
+def ideal_kernel(y, z=None):
     """performs the ideal kernel between the labels vectors *Y* and *Z*.
     The ideal kernel kernel is defines as:
     .. math:: YZ^\top

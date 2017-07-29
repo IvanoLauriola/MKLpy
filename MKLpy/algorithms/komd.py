@@ -111,12 +111,7 @@ class KOMD(BaseEstimator, ClassifierMixin):
         self.multiclass_strategy = multiclass_strategy
         self.multiclass_ = None
         self.classes_ = None
-        #per far funzionare GridSearchCV con kernel precomputed mi serve sto _pairwise=True
-        #che schifo sklearn
-        if self.kernel == 'precomputed':
-            self._pairwise = True
-        else:
-            self._pairwise = False
+        self._pairwise = self.kernel=='precomputed'
 
     def __kernel_definition__(self):
         """Select the kernel function

@@ -31,8 +31,8 @@ def alignment (K1, K2):
     v : np.float64,
         the value of kernel alignment between *K1* and *K2*.
     """
-    K1 = check_squared(K1)
-    K2 = check_squared(K2)
+    #K1 = check_squared(K1)
+    #K2 = check_squared(K2)
     #def ff(k1,k2):
     #    n = len(k1)
     #    s = 0
@@ -44,6 +44,7 @@ def alignment (K1, K2):
     f1 = np.sum(K1*K1)#ff(K1,K1)
     f2 = np.sum(K2*K2)#ff(K2,K2)
     return (f0 / np.sqrt(f1*f2))
+
 
 def alignment_ID(K):
     """evaluate the kernel alignment between a kernel as input and an identity kernel.

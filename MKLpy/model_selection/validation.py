@@ -1,7 +1,6 @@
 from sklearn.metrics import accuracy_score,roc_auc_score
 from sklearn.model_selection import StratifiedKFold as KFold
 import numpy as np
-from splits import cv3
 
 
 def __def_score__(score):
@@ -14,16 +13,23 @@ def __def_score__(score):
 
 
 #data una lista di kernel, un classificatore ed i parametri faccio cv
-def cross_val_score(KL, Y, estimator, cv=None, n_folds=3, score='accuracy'):
-    n = Y.shape[0]
+def cross_val_score(KL, Y, estimator, cv=None, n_folds=3, score='roc_auc'):
+    return _cross_val (KL, Y, estimator, 'decision_function', cv, n_folds, score)
+
+def cross_val_predict(KL, Y, estimator, cv=None, n_folds=3, score='roc_auc'):
+    return _cross_val (KL, Y, estimator, 'predict', cv, n_folds, score)
+
+
+def _cross_val(KL, Y, estimator, f, cv=None, n_folds=3, score='roc_auc'):
+    f = getattr(estimator,f)
+    n = len(Y)
     score = __def_score__(score)
-    cv   = cv   if cv   else KFold(n_folds).split(Y,Y)
+    cv   = cv or KFold(n_folds).split(Y,Y)
     scores = []
     for train,test in cv:
-        tr,te = cv3(train,test,KL.shape[0])
-        clf = estimator.fit(KL[tr],Y[train])
-        y = clf.predict(KL[te])
+        KLtr = [K[train][:,train]for K in KL]
+        KLte = [K[test][:,train]for K in KL]
+        clf = estimator.fit(KLtr,Y[train])
+        y = f(KLte)
         scores.append(score(Y[test],y))
     return scores
-
-    

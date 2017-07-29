@@ -110,13 +110,18 @@ def rescale_01(X):
     Xr : (n,m) ndarray,
          the rescaled version of *X* in [0,1].
     """
-    d = X.shape[1]
-    for i in range(d):
-        mi_v = min(X[:,i])
-        ma_v = max(X[:,i])
-        if mi_v!=ma_v:
-            X[:,i] = (X[:,i] - mi_v)/(ma_v-mi_v)
-    return X
+    #d = X.shape[1]
+    #for i in range(d):
+    #    mi_v = min(X[:,i])
+    #    ma_v = max(X[:,i])
+    #    if mi_v!=ma_v:
+    #        X[:,i] = (X[:,i] - mi_v)/(ma_v-mi_v)
+    #return X
+
+    mi, ma = np.min(X,axis=0), np.max(X,axis=0)
+    d = ma-mi
+    np.putmask(d, d == 0, 1)
+    return (X - mi) / d
 
 
 def centering(X):
@@ -152,9 +157,9 @@ def kernel_centering(K):
          the centered version of *K*.
     """
     K = check_squared(K)
-    N = K.shape[0] * 1.0
+    N = K.shape[0]
     I = np.ones(K.shape)
-    C = np.diag(np.ones(N)) - (1/N * I)
+    C = np.diag(np.ones(N)) - (1.0/N * I)
     Kc = np.dot(np.dot(C , K) , C)
     return Kc
 
