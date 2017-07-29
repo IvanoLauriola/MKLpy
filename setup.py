@@ -7,7 +7,7 @@ import os
 setup(
   name = 'MKLpy',
   packages = find_packages(exclude=['build', '_docs', 'templates']),
-  version = '0.1.3.2c',
+  version = '0.2.1',
   install_requires=[
         "numpy",
         "scipy",
@@ -74,7 +74,7 @@ examples
 --------
 
 
-** LOADING data **
+**LOADING data**
 
 It is possible to load data by using scikit-learn, exploiting the svmlight standard
 
@@ -85,7 +85,7 @@ It is possible to load data by using scikit-learn, exploiting the svmlight stand
     X = X.toarray() #Important! MKLpy require dense matrices!
 
 
-** PREPROCESSING **
+**PREPROCESSING**
 
 MKLpy provides several tools to preprocess data, some examples are:
 
@@ -111,7 +111,7 @@ It is also possible to operate on kernels directly
     Kt = tracenorm(K)
 
 
-** GENERATION **
+**GENERATION**
 
 MKL algorithms require list or arrays of kernels, it is possible to create any custom list
 
@@ -127,7 +127,7 @@ MKL algorithms require list or arrays of kernels, it is possible to create any c
     KL = [mCK(X,k=d) for d in range(1,11)] + [mDK(X,k=d) for d in range(2,11)]
 
 
-** LEARNING **
+**LEARNING**
 
 The learning phase consists on two steps: learning kernels and fit models by using a MKl algorithm and a standard kernel machine
 
@@ -157,7 +157,7 @@ It is also possible to set a custom base learner
     clf = EasyMKL(estimator=SVC(C=1)).fit(KL,Y)
 
 
-** EVALUATION **
+**EVALUATION**
 
 It is possible to evaluate a model by splitting a kernels list in train and test
 
@@ -178,7 +178,7 @@ Or using a cross-validation procedure
     scores = cross_val_score(KL,Y,estimator=clf,n_folds=5)
 
 
-** OTHER TOOLS**
+**OTHER TOOLS**
 
 MKLpy contains a wide set of tools for kernel learning and MKL, a simple example:
 
