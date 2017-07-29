@@ -30,7 +30,7 @@ setup(
                 ],
   long_description=
 '''
-=====
+
 MKLpy
 =====
 
@@ -39,13 +39,13 @@ MKLpy is a framework for Multiple Kernel Learning and kernel machines scikit-com
 
 This package contains:
 
-* some MKL algorithms and kernel machines, such as EasyMKL and KOMD;
+* MKL algorithms
+  * EasyMKL
+  * RM-GD
+  * R-MKL
+  * Average of kernels
 
 * a meta-MKL-classifier used in multiclass problems according to one-vs-one pattern;
-
-* a meta-MKL-classifier for MKL algorithms based on heuristics;
-
-* tools to generate and handle list of kernels in an efficient way;
 
 * tools to operate over kernels, such as normalization, centering, summation, mean...;
 
@@ -74,76 +74,120 @@ examples
 --------
 
 
-**Generation phase**
+** LOADING data **
 
-It is possible to exploit some generators to make a list of kernels. In the following example we rescale and normalize data, then we create a list of 20 Homogeneous Polynomial Kernels with degrees 1..20
+It is possible to load data by using scikit-learn, exploiting the svmlight standard
 
 .. code-block:: python
 
-    from MKLpy.lists import HPK_generator
-    from MKLpy.regularization import rescale_01, normalization
-    X = rescale_01(X)   # X must be a dense matrix!!!
+    from sklearn.datasets import load_svmlight_file
+    X,Y = load_svmlight_file(path)
+    X = X.toarray() #Important! MKLpy require dense matrices!
+
+
+** PREPROCESSING **
+
+MKLpy provides several tools to preprocess data, some examples are:
+
+.. code-block:: python
+
+    from MKLpy.regularization import normalization,rescale_01
+    X = rescale_01(X)
     X = normalization(X)
-    KL = HPK_generator(X).make_a_list(20).to_array()
 
-It is possible to create any custom lists
+It is also possible to operate on kernels directly
 
 .. code-block:: python
 
-    KL = np.array([np.dot(X,X.T)**d for d in range(1,21)])
+    from MKLpy.metrics.pairwise import HPK_kernel
+    K = HPK_kernel(X,degree=2)
+
+    from MKLpy.regularization import  \
+        kernel_centering,   \
+        kernel_normalization,   \
+        tracenorm
+    Kc = kernel_centering(K)
+    Kn = kernel_normalization(K)
+    Kt = tracenorm(K)
+
+
+** GENERATION **
+
+MKL algorithms require list or arrays of kernels, it is possible to create any custom list
+
+.. code-block:: python
+
+    KL = [HPK_kernel(X,degree=d) for d in range(1,11)]
     
-
-**Training phase**
-
-A kernel list is used as input of MKL algorithms. The interface of a generic MKL algorithm is the same of all predictors in scikit-learn, with the difference that the .fit method can has a list of kernels as input instead a single one or a samples matrix.
-
-.. code-block:: python
-
-    from MKLpy.algorithms import EasyMKL
-    clf = EasyMKL(lam=0.1, kernel='precomputed')
-    clf = clf.fit(KL,Y)
+    #creating lists of boolean kernels
+    from MKLpy.metrics.pairwise import      \
+        monotone_conjunctive_kernel as mCK,   \
+        monotone_disjunctive_kernel as mDK
+    #WARNING: boolean kernels require binary valued data {0,1}
+    KL = [mCK(X,k=d) for d in range(1,11)] + [mDK(X,k=d) for d in range(2,11)]
 
 
-it is also possible to learn a kernel combination with an MKL algorithm and fit the model using another kernel machine, such as an SVC
+** LEARNING **
+
+The learning phase consists on two steps: learning kernels and fit models by using a MKl algorithm and a standard kernel machine
 
 .. code-block:: python
 
+    from MKLpy.algorithms import EasyMKL,RMGD,RMKL,AverageMKL
+    #learn kernels
+    K_easy = EasyMKL(lam=0.1).arrange_kernel(KL,Y)
+    K_rmgd = RMGD(max_iter=3).arrange_kernel(KL,Y)
+    #fit models
     from sklearn.svm import SVC
-    ker_matrix = EasyMKL(lam=0.1, kernel='precomputed').arrange_kernel(KL,Y)
-    ker_matrix = np.array(ker_matrix)
-    clf = SVC(C=2, kernel='precomputed').fit(ker_matrix,Y)
+    from MKLpy.algorithms import KOMD
+    clf_komd = KOMD(lam=0.1,kernel='precomputed').fit(K_easy,Y)
+    clf_svc  = SVC(C=10,kernel='precomputed').fit(K_rmgd,Y)
 
-
-**Evaluation phase**
-
+Now, we show a more suitable procedure, where MKL algorithms use a default base learner
 
 .. code-block:: python
 
-    from MKLpy.model_selection import cv3
+    clf = EasyMKL().fit(KL,Y)
+    clf = AverageMKL().fit(KL,Y)
+
+It is also possible to set a custom base learner
+
+.. code-block:: python
+
+    clf = EasyMKL(estimator=SVC(C=1)).fit(KL,Y)
+
+
+** EVALUATION **
+
+It is possible to evaluate a model by splitting a kernels list in train and test
+
+.. code-block:: python
+
+    from MKLpy.model_selection import train_test_split, cross_val_score
     from sklearn.metrics import roc_auc_score
-    from sklearn.model_selection import StratifiedShuffleSplit
-    train,test = StratifiedShuffleSplit(n_split=1).split(X,Y).next()
-    tr,te = cv3(train,test,n_kernels)
-    KL_tr = KL[tr]
-    KL_te = KL[te]
-    Y_tr  = Y[train]
-    Y_te  = Y[test]
-    clf = EasyMKL(kernel='precomputed').fit(KL_tr,Y_tr)
-    y_score = clf.decision_function(KL_te)
-    AUC = roc_auc_score(Y_te,y_score)
+    
+    KLtr,KLte,Ytr,Yte = train_test_split(KL,Y,train_size=.75,random_state=42)
+    y_score = clf.fit(KLtr,Ytr).decision_function(KLte)
+    auc_score = roc_auc_score(Yte, y_score)
 
-
-**Some useful stuff**
-
-some metrics...
+Or using a cross-validation procedure
 
 .. code-block:: python
 
-    from MKLpy.metrics import radius,margin
-    K = np.dot(X,X)**2
-    rMEB = radius(K)   //rMEB is the radius of the closest hypersphere that contains the data
-    m = margin(K,Y)     //m is the margin between the classes, it works only in binary context
+    clf = EasyMKL(estimator=SVC())
+    scores = cross_val_score(KL,Y,estimator=clf,n_folds=5)
 
+
+** OTHER TOOLS**
+
+MKLpy contains a wide set of tools for kernel learning and MKL, a simple example:
+
+.. code-block:: python
+
+    from MKLpy.metrics import margin, radius
+    K = AverageMKL().arrange_kernel(KL,Y)
+    rho = margin(K,Y) #distance between classes
+    R = radius(K) #radius of MEB
 
 
 
