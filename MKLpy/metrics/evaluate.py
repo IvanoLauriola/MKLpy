@@ -60,6 +60,7 @@ def margin(K,Y):
     """
     K, Y = check_K_Y(K,Y)
     n = Y.shape[0]
+    Y = np.array([1 if y==Y[0] else -1 for y in Y])
     YY = spdiag(list(Y))
     P = 2*(YY*matrix(K)*YY)
     p = matrix([0.0]*n)

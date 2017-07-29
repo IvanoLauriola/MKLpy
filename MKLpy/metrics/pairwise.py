@@ -20,6 +20,7 @@ import cvxopt as co #TODO: remove this, using only numpy
 from scipy.special import binom
 from scipy.sparse import issparse
 from MKLpy.utils import bignom
+from MKLpy.utils.validation import check_X_T
 
 def HPK_kernel(X, T=None, degree=2):
     """performs the HPK kernel between the samples matricex *X* and *T*.
@@ -40,10 +41,7 @@ def HPK_kernel(X, T=None, degree=2):
         the HPK kernel matrix.
     """
     
-    if degree < 1:
-        raise ValueError('degree must be greather than 0')
-    if degree != floor(degree):
-        raise ValueError('degree must be int')
+    X, T = check_X_T(X, T)
     return np.dot(X,T.T)**degree
 
 

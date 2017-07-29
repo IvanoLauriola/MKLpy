@@ -33,6 +33,9 @@ def check_squared(K):
         raise SquaredKernelError(K.shape)
     return K.todense() if issparse(K) else K
 
+def check_X_T(X,T):
+    T = X if type(T) == types.NoneType else T
+    return X,T
 
 def check_K_Y(K,Y):
     '''check if a kernel matrix K and labels vector Y are aligned'''
