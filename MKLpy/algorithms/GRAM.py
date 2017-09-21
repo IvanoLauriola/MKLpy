@@ -49,7 +49,7 @@ def margin(K,Y):
 
 
 
-class RMGD(BaseEstimator, ClassifierMixin, MKL):
+class GRAM(BaseEstimator, ClassifierMixin, MKL):
 
 
     def __init__(self, estimator=SVC(), step=1, generator=HPK_generator(n=10), multiclass_strategy='ova', max_iter=500, tol=1e-7, verbose=False):

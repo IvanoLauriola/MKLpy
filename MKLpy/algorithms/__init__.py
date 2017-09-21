@@ -1,6 +1,6 @@
 from base import MKL, AverageMKL
 from komd import KOMD
-from RMGD import RMGD
+from GRAM import GRAM
 from RMKL import RMKL
 from EasyMKL import EasyMKL
 from EasyRKL import EasyRKL
@@ -9,7 +9,7 @@ from SimpleMKL import SimpleMKL
 
 __all__ = ['EasyMKL',
            'EasyRKL',
-           'RMGD',
+           'GRAM',
            'RMKL',
            'KOMD',
            'MKL',
