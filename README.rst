@@ -22,7 +22,7 @@ This package contains:
 
 
 
-For more informations about classification, kernels and predictors visit `Link scikit-learn <http://scikit-learn.org/stable/>`_
+For more informations about classification, kernels and predictors visit `scikit-learn <http://scikit-learn.org/stable/>`_ docs.
 
 
 installation
