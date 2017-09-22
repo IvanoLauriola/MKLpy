@@ -1,3 +1,4 @@
 test.py
 simple_test.py
 *.pyc
+*test.py
