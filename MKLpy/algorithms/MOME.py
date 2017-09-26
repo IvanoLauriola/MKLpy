@@ -14,17 +14,19 @@ from cvxopt import matrix, spdiag, solvers
 import numpy as np
  
 from MKLpy.arrange import summation
-
+from MKLpy.algorithms import KOMD
 
 
 
 class MOME(BaseEstimator, ClassifierMixin, MKL):
 
 
-    def __init__(self, estimator=SVC(), step=0.01, generator=HPK_generator(n=10), multiclass_strategy='ova', max_iter=500, tol=1e-7, verbose=False):
+    def __init__(self, estimator=SVC(), lam=0, step=0.01, generator=HPK_generator(n=10), multiclass_strategy='ova', max_iter=500, tol=1e-7, verbose=False):
         super(self.__class__, self).__init__(estimator=estimator, generator=generator, multiclass_strategy=multiclass_strategy, how_to=summation, max_iter=max_iter, verbose=verbose)
         self.step = step
         self.tol = tol
+        self.lam = lam
+
 
 
     def _arrange_kernel(self):
@@ -32,20 +34,28 @@ class MOME(BaseEstimator, ClassifierMixin, MKL):
         nn = len(Y)
         nk = self.n_kernels
         YY = spdiag(Y)
-        eta = [1.0 / nk] * nk
+        beta = [0.0] * nk
+        mu = np.exp(beta)
+        mu /= mu.sum()
         
-        actual_weights = eta[:]
+        #actual_weights = eta[:]
         actual_ratio = None
         Q = np.array([[np.dot(self.KL[r].ravel(),self.KL[s].ravel()) for r in range(nk)] for s in range(nk)])
 
         self.sr,self.margin = [],[]
         cstep = self.step
+        I = np.diag(np.ones(nn))
         for i in xrange(self.max_iter):
-        	Kc = summation(self.KL,eta)
+        	Kc = summation(self.KL,mu)
         	#self.sr.append(spectral_ratio(Kc))
+        	#Kcc = (1-self.lam) * Kc + self.lam * np.diag(np.ones(nn))
         	self.sr.append(np.sum(Kc**2))
         	try:
-        		m = margin(Kc,Y)
+        		clf = KOMD(lam=self.lam,kernel='precomputed').fit(Kc,Y)
+        		gamma = clf.gamma
+        		#m = margin(Kcc,Y)
+        		m = (gamma.T * YY * matrix(Kc) * YY * gamma)[0]
+
         		self.margin.append(m)
         	except:
         		break;
@@ -55,15 +65,23 @@ class MOME(BaseEstimator, ClassifierMixin, MKL):
         		pass
         		#print m
         		#sys.stdout.flush()
-        	gstep = np.array([2 * np.dot(Q[r],eta) * eta[r] * (1 - eta[r]) for r in range(nk)])
-        	eta += cstep * gstep
-        	eta /= eta.sum()
+
+        	#margin maximization
+        	#if len(self.margin)>1 and self.margin[-1] < self.margin[-2]:
+        	#	break;
+        	#end margin mazimization
+
+        	gstep = np.array([2 * np.dot(Q[r],mu) * mu[r] * (1 - mu[r]) for r in range(nk)])
+        	beta += cstep * gstep
+        	#eta /= eta.sum()
+        	mu = np.exp(beta)
+        	mu /= mu.sum()
 
 
         self._steps = i+1
-        print 'steps', self._steps
+        print 'steps', self._steps, 'lam',self.lam
         
-        self.weights = np.array(eta)
+        self.weights = np.array(mu)
         self.ker_matrix = summation(self.KL,self.weights)
         return self.ker_matrix
 
