@@ -1,6 +1,6 @@
-********
+-------------
 MKLpy
-********
+-------------
 
 
 MKLpy is a framework for Multiple Kernel Learning and kernel machines scikit-compliant.
@@ -54,9 +54,9 @@ To work properly, MKLpy requires:
 * cvxopt
 
 
-********
+-------------
 Examples
-********
+-------------
 
 In the following sections, we show how the various tools in ``MKLpy`` could be used to generate, learn and evalute MKL alogrithms. Let's get started with loading a dataset scikit-learn, exploiting the svmlight standard
 
@@ -70,7 +70,7 @@ In the following sections, we show how the various tools in ``MKLpy`` could be u
 
 
 Preprocessing
-=============
+-------------
 
 MKLpy provides several tools to preprocess data, some examples are:
 
@@ -97,7 +97,7 @@ It is also possible to operate on kernels directly
 
 
 Generation of Kernels
-===================
+--------------------------
 
 MKL algorithms requires a list or arrays of kernels. With tools from MKLpy, it is easy to create a list of kernels, or another custom list of your choice:
 
@@ -114,7 +114,7 @@ MKL algorithms requires a list or arrays of kernels. With tools from MKLpy, it i
 
 
 Learning of Kernels
-=================
+--------------------------
 
 The learning phase consists on two steps: 
 
@@ -148,7 +148,7 @@ It is also possible to set a custom base learner
 
 
 Evaluation
-=============
+-------------
 
 You can evaluate a model by splitting a kernel list into train and test sets:
 
@@ -169,7 +169,7 @@ Or using a cross-validation procedure:
     scores = cross_val_score(KL,Y,estimator=clf,n_folds=5)
 
 Other useful tools
-================
+--------------------------
 
 MKLpy contains a wider set of tools for kernel learning and MKL, of which some examples include computing the distance between classes as well as radius of an MEB:
 
