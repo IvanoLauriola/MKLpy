@@ -1,5 +1,6 @@
+********
 MKLpy
-=====
+********
 
 
 MKLpy is a framework for Multiple Kernel Learning and kernel machines scikit-compliant.
@@ -25,8 +26,8 @@ This package contains:
 For more informations about classification, kernels and predictors visit `scikit-learn <http://scikit-learn.org/stable/>`_ docs.
 
 
-installation
-------------
+Installation
+-------------
 
 You can easily install via this command:
 
@@ -41,7 +42,7 @@ If you do not have sudo privileges, try:
  pip install MKLpy --user
  
 
-requirements
+Requirements
 ------------
 
 To work properly, MKLpy requires:
@@ -53,9 +54,9 @@ To work properly, MKLpy requires:
 * cvxopt
 
 
---------
-examples
---------
+********
+Examples
+********
 
 In the following sections, we show how the various tools in ``MKLpy`` could be used to generate, learn and evalute MKL alogrithms. Let's get started with loading a dataset scikit-learn, exploiting the svmlight standard
 
@@ -67,8 +68,9 @@ In the following sections, we show how the various tools in ``MKLpy`` could be u
 
 *Note* MKLpy requires dense matrices (not sparse) to operate!
 
-PREPROCESSING
--------------
+
+Preprocessing
+=============
 
 MKLpy provides several tools to preprocess data, some examples are:
 
@@ -94,8 +96,8 @@ It is also possible to operate on kernels directly
     Kt = tracenorm(K)
 
 
-GENERATION
-----------
+Generation of Kernels
+===================
 
 MKL algorithms requires a list or arrays of kernels. With tools from MKLpy, it is easy to create a list of kernels, or another custom list of your choice:
 
@@ -111,10 +113,11 @@ MKL algorithms requires a list or arrays of kernels. With tools from MKLpy, it i
     KL = [mCK(X,k=d) for d in range(1,11)] + [mDK(X,k=d) for d in range(2,11)]
 
 
-LEARNING
--------------
+Learning of Kernels
+=================
 
 The learning phase consists on two steps: 
+
  - learning kernels and 
  - fitting models by using a MKl algorithm and a standard kernel machine
 
@@ -144,8 +147,8 @@ It is also possible to set a custom base learner
     clf = EasyMKL(estimator=SVC(C=1)).fit(KL,Y)
 
 
-EVALUATION
--------------
+Evaluation
+=============
 
 You can evaluate a model by splitting a kernel list into train and test sets:
 
@@ -165,9 +168,8 @@ Or using a cross-validation procedure:
     clf = EasyMKL(estimator=SVC())
     scores = cross_val_score(KL,Y,estimator=clf,n_folds=5)
 
-
-OTHER TOOLS
--------------
+Other useful tools
+================
 
 MKLpy contains a wider set of tools for kernel learning and MKL, of which some examples include computing the distance between classes as well as radius of an MEB:
 
