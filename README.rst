@@ -1,5 +1,6 @@
+-------------
 MKLpy
-=====
+-------------
 
 
 MKLpy is a framework for Multiple Kernel Learning and kernel machines scikit-compliant.
@@ -22,10 +23,26 @@ This package contains:
 
 
 
-For more informations about classification, kernels and predictors visit `Link scikit-learn <http://scikit-learn.org/stable/>`_
+For more informations about classification, kernels and predictors visit `scikit-learn <http://scikit-learn.org/stable/>`_ docs.
 
 
-requirements
+Installation
+-------------
+
+You can easily install via this command:
+
+.. code-block:: bash
+
+ pip install MKLpy
+ 
+If you do not have sudo privileges, try:
+
+.. code-block:: bash
+
+ pip install MKLpy --user
+ 
+
+Requirements
 ------------
 
 To work properly, MKLpy requires:
@@ -37,13 +54,11 @@ To work properly, MKLpy requires:
 * cvxopt
 
 
-examples
---------
+-------------
+Examples
+-------------
 
-
-**LOADING data**
-
-It is possible to load data by using scikit-learn, exploiting the svmlight standard
+In the following sections, we show how the various tools in ``MKLpy`` could be used to generate, learn and evalute MKL alogrithms. Let's get started with loading a dataset scikit-learn, exploiting the svmlight standard
 
 .. code-block:: python
 
@@ -51,8 +66,11 @@ It is possible to load data by using scikit-learn, exploiting the svmlight stand
     X,Y = load_svmlight_file(path)
     X = X.toarray()	#Important! MKLpy require dense matrices!
 
+*Note* MKLpy requires dense matrices (not sparse) to operate!
 
-**PREPROCESSING**
+
+Preprocessing
+-------------
 
 MKLpy provides several tools to preprocess data, some examples are:
 
@@ -78,9 +96,10 @@ It is also possible to operate on kernels directly
     Kt = tracenorm(K)
 
 
-**GENERATION**
+Generation of Kernels
+--------------------------
 
-MKL algorithms require list or arrays of kernels, it is possible to create any custom list
+MKL algorithms requires a list or arrays of kernels. With tools from MKLpy, it is easy to create a list of kernels, or another custom list of your choice:
 
 .. code-block:: python
 
@@ -94,9 +113,13 @@ MKL algorithms require list or arrays of kernels, it is possible to create any c
     KL = [mCK(X,k=d) for d in range(1,11)] + [mDK(X,k=d) for d in range(2,11)]
 
 
-**LEARNING**
+Learning of Kernels
+--------------------------
 
-The learning phase consists on two steps: learning kernels and fit models by using a MKl algorithm and a standard kernel machine
+The learning phase consists on two steps: 
+
+ - learning kernels and 
+ - fitting models by using a MKl algorithm and a standard kernel machine
 
 .. code-block:: python
 
@@ -110,7 +133,7 @@ The learning phase consists on two steps: learning kernels and fit models by usi
     clf_komd = KOMD(lam=0.1,kernel='precomputed').fit(K_easy,Y)
     clf_svc  = SVC(C=10,kernel='precomputed').fit(K_rmgd,Y)
 
-Now, we show a more suitable procedure, where MKL algorithms use a default base learner
+Now, we show a more simpler procedure, where MKL algorithms use a default base learner
 
 .. code-block:: python
 
@@ -124,9 +147,10 @@ It is also possible to set a custom base learner
     clf = EasyMKL(estimator=SVC(C=1)).fit(KL,Y)
 
 
-**EVALUATION**
+Evaluation
+-------------
 
-It is possible to evaluate a model by splitting a kernels list in train and test
+You can evaluate a model by splitting a kernel list into train and test sets:
 
 .. code-block:: python
 
@@ -137,17 +161,17 @@ It is possible to evaluate a model by splitting a kernels list in train and test
     y_score = clf.fit(KLtr,Ytr).decision_function(KLte)
     auc_score = roc_auc_score(Yte, y_score)
 
-Or using a cross-validation procedure
+Or using a cross-validation procedure: 
 
 .. code-block:: python
 
     clf = EasyMKL(estimator=SVC())
     scores = cross_val_score(KL,Y,estimator=clf,n_folds=5)
 
+Other useful tools
+--------------------------
 
-**OTHER TOOLS**
-
-MKLpy contains a wide set of tools for kernel learning and MKL, a simple example:
+MKLpy contains a wider set of tools for kernel learning and MKL, of which some examples include computing the distance between classes as well as radius of an MEB:
 
 .. code-block:: python
 
