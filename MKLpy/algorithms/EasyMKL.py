@@ -73,7 +73,6 @@ class EasyMKL(BaseEstimator, ClassifierMixin, MKL):
     def get_params(self, deep=True):
         # this estimator has parameters:
         return {"lam": self.lam,
-                "generator": self.generator, "n_kernels": self.n_kernels, "max_iter":self.max_iter,
+                "generator": self.generator, "max_iter":self.max_iter,
                 "verbose":self.verbose, "multiclass_strategy":self.multiclass_strategy,
                 'estimator':self.estimator}
-

@@ -121,7 +121,6 @@ class GRAM(BaseEstimator, ClassifierMixin, MKL):
         # this estimator has parameters:
         return {"step": self.step,
                 "tol": self.tol,
-                "generator": self.generator, "n_kernels": self.n_kernels, "max_iter":self.max_iter,
+                "generator": self.generator, "max_iter":self.max_iter,
                 "verbose":self.verbose, "multiclass_strategy":self.multiclass_strategy,
                 'estimator':self.estimator}
-

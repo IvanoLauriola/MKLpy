@@ -3,6 +3,7 @@ from sklearn.utils.multiclass import check_classification_targets
 from MKLpy.arrange import average
 from MKLpy.lists.generator import HPK_generator
 from MKLpy.utils.validation import process_list, check_KL_Y
+from MKLpy.multiclass import OneVsOneMKLClassifier, OneVsRestMKLClassifier
 import numpy as np
 from sklearn.base import BaseEstimator, ClassifierMixin
 
@@ -50,8 +51,8 @@ class MKL(object):
 		self._prepare(X,Y)
 
 		if self.multiclass_ :
-			pass	#TODO: implement multiclass strategy
-			#set self.cls
+			metaClassifier = OneVsOneMKLClassifier if self.multiclass_strategy in ['ovo','OvO','1v1'] else OneVsRestMKLClassifier
+			self.clf = metaClassifier(self.__class__(**self.get_params())).fit(self.KL,self.Y)
 		else :
 			self._fit()					# fit the model
 
@@ -66,6 +67,8 @@ class MKL(object):
 	def arrange_kernel(self,X,Y=None):
 		'''only kernels combination, with preprocess'''
 		self._prepare(X,Y)
+		if self.multiclass_:
+			raise ValueError("arrange_kernel requires binary classification problems")
 		return self._arrange_kernel()
 
 
@@ -79,7 +82,8 @@ class MKL(object):
 		if not self.is_fitted :
 			raise NotFittedError("This KOMD instance is not fitted yet. Call 'fit' with appropriate arguments before using this method.")
 		KL = process_list(X,self.generator)
-		return self.cls.predict(KL) if self.multiclass_ else self.estimator.predict(self.how_to(KL,self.weights))
+		return self.clf.predict(KL) if self.multiclass_ else self.estimator.predict(self.how_to(KL,self.weights))
+		#return self.estimator.decision_function(self.how_to(KL,self.weights))
 
 	def decision_function(self,X):
 		if self.is_fitted == False:

@@ -42,7 +42,8 @@ def summation (K_list, weights = None):
     l = len(K_list)
     weights = np.ones(l, dtype = np.double) if type(weights) == types.NoneType else weights
     for w,ker in zip(weights, K_list):
-        K += w * ker
+        #K += w * ker
+        K = K + w * ker
     return K
 
 

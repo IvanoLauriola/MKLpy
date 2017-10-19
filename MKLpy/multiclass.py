@@ -187,10 +187,11 @@ class OneVsOneMKLClassifier():
         return y_pred
 
 
+
 class OneVsRestMKLClassifier():
-    def __init__(self, clf1, clf2, verbose=False):
+    def __init__(self, clf1, verbose=False):
         self.clf1 = clf1
-        self.clf2 = clf2
+        self.clf2 = clf1.estimator
         self.verbose = verbose
 
         self.is_fitted = False

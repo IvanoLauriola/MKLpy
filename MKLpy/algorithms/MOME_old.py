@@ -21,12 +21,11 @@ from MKLpy.algorithms import KOMD
 class MOME(BaseEstimator, ClassifierMixin, MKL):
 
 
-    def __init__(self, estimator=SVC(), lam=0, C=0.1, step=0.01, generator=HPK_generator(n=10), multiclass_strategy='ova', max_iter=500, tol=1e-7, verbose=False):
+    def __init__(self, estimator=SVC(), lam=0, step=0.01, generator=HPK_generator(n=10), multiclass_strategy='ova', max_iter=500, tol=1e-7, verbose=False):
         super(self.__class__, self).__init__(estimator=estimator, generator=generator, multiclass_strategy=multiclass_strategy, how_to=summation, max_iter=max_iter, verbose=verbose)
         self.step = step
         self.tol = tol
         self.lam = lam
-        self.C = C
 
 
 
@@ -44,37 +43,44 @@ class MOME(BaseEstimator, ClassifierMixin, MKL):
         Q = np.array([[np.dot(self.KL[r].ravel(),self.KL[s].ravel()) for r in range(nk)] for s in range(nk)])
 
         self.sr,self.margin = [],[]
-        self.obj = []
-        _beta,_mu = None,None
         cstep = self.step
         I = np.diag(np.ones(nn))
         for i in xrange(self.max_iter):
-            Kc = summation(self.KL,mu)
-            #trovo i gamma
-            clf = KOMD(kernel='precomputed',lam=self.lam).fit(Kc,Y)
-            gamma = clf.gamma
-            _margin = (gamma.T * YY * matrix(Kc) * YY * gamma)[0]
-            #m = (gamma.T * YY * matrix(Kc) * YY * gamma)[0]
-            grad = np.array([(self.C * np.dot(Q[r],mu) + (gamma.T * YY * matrix(self.KL[r]) * YY * gamma)[0]) \
-                    * mu[r] * (1- mu[r]) \
-                      for r in range(nk)])
-            _beta = beta + cstep * grad
-            _mu = np.exp(_beta)
-            _mu /= _mu.sum()
+        	Kc = summation(self.KL,mu)
+        	#self.sr.append(spectral_ratio(Kc))
+        	#Kcc = (1-self.lam) * Kc + self.lam * np.diag(np.ones(nn))
+        	self.sr.append(np.sum(Kc**2))
+        	try:
+        		clf = KOMD(lam=self.lam,kernel='precomputed').fit(Kc,Y)
+        		gamma = clf.gamma
+        		#m = margin(Kcc,Y)
+        		m = (gamma.T * YY * matrix(Kc) * YY * gamma)[0]
 
-            _obj = _margin+(self.C/2)* np.dot(_mu,np.dot(_mu,Q))
-            if self.obj and _obj<self.obj[-1]:  # nel caso di peggioramento
-                cstep /= 2.0
-                if cstep < 0.00001: break
-            else : 
-                self.obj.append(_obj)
-                self.margin.append(_margin)
-                mu = _mu
-                beta = _beta
+        		self.margin.append(m)
+        	except:
+        		break;
+        	if m < 0.01:
+        		break;
+        	else:
+        		pass
+        		#print m
+        		#sys.stdout.flush()
+
+        	#margin maximization
+        	#if len(self.margin)>1 and self.margin[-1] < self.margin[-2]:
+        	#	break;
+        	#end margin mazimization
+
+        	gstep = np.array([2 * np.dot(Q[r],mu) * mu[r] * (1 - mu[r]) for r in range(nk)])
+        	beta += cstep * gstep
+        	#eta /= eta.sum()
+        	mu = np.exp(beta)
+        	mu /= mu.sum()
 
 
         self._steps = i+1
-        #print 'steps', self._steps, 'lam',self.lam,'margin',self.margin[-1]
+        print 'steps', self._steps, 'lam',self.lam,'margin',self.margin[-1]
+        
         self.weights = np.array(mu)
         self.ker_matrix = summation(self.KL,self.weights)
         return self.ker_matrix

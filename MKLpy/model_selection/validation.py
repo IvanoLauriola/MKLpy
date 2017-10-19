@@ -13,18 +13,18 @@ def __def_score__(score):
 
 
 #data una lista di kernel, un classificatore ed i parametri faccio cv
-def cross_val_score(KL, Y, estimator, cv=None, n_folds=3, score='roc_auc'):
-    return _cross_val (KL, Y, estimator, 'decision_function', cv, n_folds, score)
+def cross_val_score(KL, Y, estimator, cv=None, n_folds=3, score='roc_auc', random_state=None):
+    return _cross_val (KL, Y, estimator, 'decision_function', cv, n_folds, score, random_state)
 
-def cross_val_predict(KL, Y, estimator, cv=None, n_folds=3, score='roc_auc'):
-    return _cross_val (KL, Y, estimator, 'predict', cv, n_folds, score)
+def cross_val_predict(KL, Y, estimator, cv=None, n_folds=3, score='roc_auc', random_state=None):
+    return _cross_val (KL, Y, estimator, 'predict', cv, n_folds, score, random_state)
 
 
-def _cross_val(KL, Y, estimator, f, cv=None, n_folds=3, score='roc_auc'):
+def _cross_val(KL, Y, estimator, f, cv=None, n_folds=3, score='roc_auc', random_state=None):
     f = getattr(estimator,f)
     n = len(Y)
     score = __def_score__(score)
-    cv   = cv or KFold(n_folds).split(Y,Y)
+    cv   = cv or KFold(n_folds,random_state = random_state).split(Y,Y)
     scores = []
     for train,test in cv:
         KLtr = [K[train][:,train]for K in KL]
