@@ -17,9 +17,10 @@ from sklearn.metrics import roc_auc_score, accuracy_score
 
 class OneVsOneMKLClassifier():
     
-    def __init__(self, clf1, clf2, verbose=False):
+    def __init__(self, clf1, verbose=False):
+        print 'init ovo'
         self.clf1 = clf1
-        self.clf2 = clf2
+        self.clf2 = clf1.estimator
         self.verbose = verbose
         
     def get_params(self, deep=True):
@@ -190,6 +191,7 @@ class OneVsOneMKLClassifier():
 
 class OneVsRestMKLClassifier():
     def __init__(self, clf1, verbose=False):
+        print 'init ovr'
         self.clf1 = clf1
         self.clf2 = clf1.estimator
         self.verbose = verbose
