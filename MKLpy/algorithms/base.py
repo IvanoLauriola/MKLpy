@@ -88,6 +88,8 @@ class MKL(object):
 	def decision_function(self,X):
 		if self.is_fitted == False:
 			raise NotFittedError("This KOMD instance is not fitted yet. Call 'fit' with appropriate arguments before using this method.")
+		if self.multiclass_:
+			raise ValueError('Scores are not available for multiclass problems, use predict')
 		KL = process_list(X,self.generator)				# X can be a samples matrix or Kernel List
 		return self.estimator.decision_function(self.how_to(KL,self.weights))
 
@@ -100,19 +102,6 @@ class MKL(object):
 
 	def get_params(self,deep=True):
 		raise NotImplementedError('Not implemented yet')
-
-
-'''
-	def get_params(self, deep=True):
-		# this estimator has parameters:
-		return dict({
-				"estimaor":self.estimator,
-				"generator":self.generator,
-				"how_to":self.how_to,
-				"verbose":self.verbose,
-				"multiclass_strategy":self.multiclass_strategy,
-				}, **self.params)
-'''
 
 
 
