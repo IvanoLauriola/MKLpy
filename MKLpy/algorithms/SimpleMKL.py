@@ -26,6 +26,7 @@ class SimpleMKL(BaseEstimator, ClassifierMixin, MKL):
 
 
     def _arrange_kernel(self):
+    	print "WARNING: probably not working"
         Y = [1 if y==self.classes_[1] else -1 for y in self.Y]
         n = len(self.Y)
         YY = spdiag(Y)

@@ -21,7 +21,7 @@ from MKLpy.algorithms import KOMD
 class MOME(BaseEstimator, ClassifierMixin, MKL):
 
 
-    def __init__(self, estimator=SVC(), lam=0, C=0.1, step=0.01, generator=HPK_generator(n=10), multiclass_strategy='ova', max_iter=500, tol=1e-7, verbose=False):
+    def __init__(self, estimator=SVC(), lam=0, C=0.1, step=0.002, generator=HPK_generator(n=10), multiclass_strategy='ova', max_iter=1000, tol=1e-7, verbose=False):
         super(self.__class__, self).__init__(estimator=estimator, generator=generator, multiclass_strategy=multiclass_strategy, how_to=summation, max_iter=max_iter, verbose=verbose)
         self.step = step
         self.tol = tol
@@ -42,6 +42,7 @@ class MOME(BaseEstimator, ClassifierMixin, MKL):
         #actual_weights = eta[:]
         actual_ratio = None
         Q = np.array([[np.dot(self.KL[r].ravel(),self.KL[s].ravel()) for r in range(nk)] for s in range(nk)])
+        Q /= np.sum([frobenius(K)**2 for K in self.KL])
 
         self.sr,self.margin = [],[]
         self.obj = []
@@ -84,7 +85,9 @@ class MOME(BaseEstimator, ClassifierMixin, MKL):
         # this estimator has parameters:
         return {"step": self.step,
                 "tol": self.tol,
-                "generator": self.generator, "n_kernels": self.n_kernels, "max_iter":self.max_iter,
+                "C":self.C,
+                "lam":self.lam,
+                "generator": self.generator, "max_iter":self.max_iter,
                 "verbose":self.verbose, "multiclass_strategy":self.multiclass_strategy,
-                'estimator':self.estimator}
+                "estimator":self.estimator}
 
