@@ -2,3 +2,5 @@ test.py
 simple_test.py
 *.pyc
 *test.py
+auc.py
+misc.py

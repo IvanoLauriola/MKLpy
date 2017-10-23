@@ -4,7 +4,7 @@ import numpy as np
 
 
 def __def_score__(score):
-    return roc_auc_score
+    #return roc_auc_score
     if score in ['auc','AUC']:
         return roc_auc_score
     elif score=='accuracy' or True:
