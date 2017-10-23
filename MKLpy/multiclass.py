@@ -18,7 +18,7 @@ from sklearn.metrics import roc_auc_score, accuracy_score
 class OneVsOneMKLClassifier():
     
     def __init__(self, clf1, verbose=False):
-        print 'init ovo'
+        #print 'init ovo'
         self.clf1 = clf1
         self.clf2 = clf1.estimator
         self.verbose = verbose
@@ -42,12 +42,14 @@ class OneVsOneMKLClassifier():
         K_tr = np.array([kk[id_for_train][:,id_for_train] for kk in K_tr])
         
         n_classes = len(np.unique(Y_tr))
+        self.classes_ = np.unique(Y_tr)
         self.n_classes = n_classes
         #Ove vs One
         list_of_dichos = []
         for i in range(n_classes):
             for j in range(i+1,n_classes):
-                list_of_dichos.append(((i,),(j,)))
+                #list_of_dichos.append(((i,),(j,)))
+                list_of_dichos.append(((int(self.classes_[i]),),(int(self.classes_[j]),)))
         
         list_of_indices = {}
         list_of_indices_train = {}
@@ -138,7 +140,9 @@ class OneVsOneMKLClassifier():
         # Voting   
         #nn = len(Y_te)
         nn = len(K_te[0])
-        points = np.zeros((nn,self.n_classes),dtype=int)
+        #points = np.zeros((nn,self.n_classes),dtype=int)
+        points = np.zeros((nn,int(np.max(self.classes_))+1),dtype=int)
+        #print points.shape
         for dicho in self.list_of_dichos:
             for ir,r in enumerate(predicts[dicho]):
                 if r > 0:
@@ -248,12 +252,11 @@ class OneVsRestMKLClassifier():
             ker = functional_form(K_list, w)
             clf = self.clfs[model]
             predicts.update({model: clf.decision_function(ker)})
-
         # voting
         scoring = np.zeros((nn, self.n_classes))
         for col, model in enumerate(self.classes_):
             scoring[:, col] = predicts[model]
-        y_pred = np.array([np.argmax(sc) for sc in scoring])
+        y_pred = np.array([self.classes_[np.argmax(sc)] for sc in scoring])
         return y_pred
 
 
