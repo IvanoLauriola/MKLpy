@@ -72,6 +72,8 @@ class MOME(BaseEstimator, ClassifierMixin, MKL):
                 self.margin.append(_margin)
                 mu = _mu
                 beta = _beta
+            if _margin < 1e-3:
+                break
 
 
         self._steps = i+1
