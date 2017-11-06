@@ -7,7 +7,7 @@ import os
 setup(
   name = 'MKLpy',
   packages = find_packages(exclude=['build', '_docs', 'templates']),
-  version = '0.2.1.2',
+  version = '0.2.1.3',
   install_requires=[
         "numpy",
         "scipy",
