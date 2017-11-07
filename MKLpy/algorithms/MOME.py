@@ -64,7 +64,7 @@ class MOME(BaseEstimator, ClassifierMixin, MKL):
             _mu /= _mu.sum()
 
             _obj = _margin+(self.C/2)* np.dot(_mu,np.dot(_mu,Q))
-            if self.obj and _obj<self.obj[-1]:  # nel caso di peggioramento
+            if (self.obj and _obj<self.obj[-1]) or _margin < 1.e-4:  # nel caso di peggioramento
                 cstep /= 2.0
                 if cstep < 0.00001: break
             else : 
@@ -72,8 +72,6 @@ class MOME(BaseEstimator, ClassifierMixin, MKL):
                 self.margin.append(_margin)
                 mu = _mu
                 beta = _beta
-            if _margin < 1e-3:
-                break
 
 
         self._steps = i+1
