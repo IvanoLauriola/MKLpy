@@ -3,31 +3,48 @@
 from sklearn.metrics  import completeness_score, v_measure_score, homogeneity_score
 import numpy as np
 
-class Binarizator(Object):
+class Binarizator():
+	''' base class for binarization algorithms '''
+	def fit(self,X,Y):
+		raise NotImplementedError('Not implemented yet')
 
-	def __init__():
-		pass
+	def transform(self,X):
+		raise NotImplementedError('Not implemented yet')
 
-	def transform(X,Y=None):
-		pass
+	def get_params(self,deep=True):
+		raise NotImplementedError('Not implemented yet')
+
+	def set_params(self, **parameters):
+		for parameter, value in parameters.items():
+			setattr(self,parameter,value)
+		return self
+
 
 class AverageBinarizator(Binarizator):
-
-	def __init__():
+	''' performs a feature discretization, 1 if the value is over an average threshold, 0 else '''
+	def __init__(self):
 		return
 
-	def transform(X,Y=None):
-		cols = np.average(X,axis=0)
-		return np.concatenate((X>cols,X<=cols),axis=1)
+	def fit (self,X,Y):
+		self.cols = np.average(X,axis=0)
+		return self
+
+	def transform(self,X):
+		return (X > self.cols) * 1
+
+	def get_params(self,deep=True):
+		return {}
+
+
 
 class EntropyBinarizator(Binarizator):
 
-	def __init__():
-		return
+	def __init__(self):
+		pass
 
-	def transform(X,Y):
+	def fit(self,X,Y):
 		n,m = X.shape[0],X.shape[1]
-		cols = np.zeros(m)
+		self.cols = np.zeros(m)
 		for i in xrange(m):
 			v = np.unique(X[:,i])
 			v.sort()
@@ -38,5 +55,11 @@ class EntropyBinarizator(Binarizator):
 				e = completeness_score(Y,[1 if y < s else 0 for y in Y])
 				if not top['e'] or e > top['e']:
 					top = {'e':e, 's':s}
-			cols[i] = top['s']
-		return np.concatenate((X>cols,X<=cols),axis=1)
+			self.cols[i] = top['s']
+		return self
+
+	def transform(self,X):
+		return (X > self.cols) * 1
+
+	def get_params(self,deep=True):
+		return {}
