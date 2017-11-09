@@ -30,7 +30,7 @@ class AverageBinarizer(Binarizer):
 		return self
 
 	def transform(self,X):
-		return (X > self.cols) * 1
+		return np.concatenate((X>cols,X<=cols),axis=1) * 1
 
 	def get_params(self,deep=True):
 		return {}
@@ -59,7 +59,7 @@ class EntropyBinarizer(Binarizator):
 		return self
 
 	def transform(self,X):
-		return (X > self.cols) * 1
+		return np.concatenate((X>cols,X<=cols),axis=1) * 1
 
 	def get_params(self,deep=True):
 		return {}
