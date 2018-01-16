@@ -80,7 +80,7 @@ class MOME(BaseEstimator, ClassifierMixin, MKL):
         self.ker_matrix = summation(self.KL,self.weights)
         return self.ker_matrix
 
-
+ 
     def get_params(self, deep=True):
         # this estimator has parameters:
         return {"step": self.step,

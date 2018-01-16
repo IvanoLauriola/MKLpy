@@ -3,4 +3,5 @@ simple_test.py
 *.pyc
 *test.py
 auc.py
+bin.py
 misc.py
