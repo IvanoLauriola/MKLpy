@@ -16,26 +16,27 @@ from MKLpy.arrange import summation
 
 
 
-def radius(K,init_sol=None): 
-    #init_sol=None
+def radius(K,lam=0,init_sol=None): 
     n = K.shape[0]
-    P = 2 * matrix(K)
+    K = matrix(K)
+    P = 2 * ( (1-lam) * K + spdiag([lam]*n) )
     p = -matrix([K[i,i] for i in range(n)])
     G = -spdiag([1.0] * n)
     h = matrix([0.0] * n)
     A = matrix([1.0] * n).T
     b = matrix([1.0])
     solvers.options['show_progress']=False
-    #solvers.options['feastol']=1
-    sol = solvers.qp(P,p,G,h,A,b,initvals=init_sol)# if init_sol else solvers.qp(P,p,G,h,A,b)
-    return np.sqrt(abs(sol['primal objective'])),sol['x'],sol
+    sol = solvers.qp(P,p,G,h,A,b,initvals=init_sol)
+    radius2 = (-p.T * sol['x'])[0] - (sol['x'].T * K * sol['x'])[0]
+    return sol, radius2
 
 
-def margin(K,Y,init_sol=None):
-    #init_sol=None
+def margin(K,Y,lam=0,init_sol=None):
     n = len(Y)
     YY = spdiag(list(Y))
-    P = 2*(YY*matrix(K)*YY)
+    K = matrix(K)
+    lambdaDiag = spdiag([lam]*n)
+    P = 2*( (1-lam) * (YY*K*YY) + lambdaDiag )
     p = matrix([0.0]*n)
     G = -spdiag([1.0]*n)
     h = matrix([0.0]*n)
@@ -43,9 +44,9 @@ def margin(K,Y,init_sol=None):
                 [1.0 if Y[j]==-1 else 0 for j in range(n)]]).T
     b = matrix([[1.0],[1.0]],(2,1))
     solvers.options['show_progress']=False
-    #solvers.options['feastol']=1e-8
-    sol = solvers.qp(P,p,G,h,A,b,initvals=init_sol) # if init_sol else solvers.qp(P,p,G,h,A,b)
-    return np.sqrt(sol['primal objective']),sol['x'],sol
+    sol = solvers.qp(P,p,G,h,A,b,initvals=init_sol)
+    margin2 = sol['dual objective'] - (sol['x'].T * lambdaDiag * sol['x'])[0]
+    return sol,margin2
 
 
 
@@ -55,9 +56,10 @@ def margin(K,Y,init_sol=None):
 
 class GRAM(BaseEstimator, ClassifierMixin, MKL):
 
-    def __init__(self, estimator=SVC(), step=1.0, generator=HPK_generator(n=10), multiclass_strategy='ova', max_iter=1000, tol=1e-9, verbose=False, n_folds=1, random_state=42):
+    def __init__(self, estimator=SVC(), step=1.0, generator=HPK_generator(n=10), multiclass_strategy='ova', max_iter=10000, tol=1e-9, verbose=False, n_folds=1, random_state=42,lam=0):
         super(self.__class__, self).__init__(estimator=estimator, generator=generator, multiclass_strategy=multiclass_strategy, how_to=summation, max_iter=max_iter, verbose=verbose)
         self.step = step
+        self.lam = lam
         self.tol = tol
         self.n_folds = n_folds
         self.random_state = random_state
@@ -65,29 +67,34 @@ class GRAM(BaseEstimator, ClassifierMixin, MKL):
     def _arrange_kernel(self):
 
         Y = [1 if y==self.classes_[1] else -1 for y in self.Y]
+        YY = spdiag(Y)
+        Y = np.array(Y)
         nn = len(Y)
         nk = self.n_kernels
 
         idx_e = range(nn)
         np.random.seed(self.random_state)
         np.random.shuffle(idx_e)
-        splits = [idx_e[i::self.n_folds] for i in range(self.n_folds)]
-        alphas = [None] * self.n_folds
-        gammas = [None] * self.n_folds
-        radiuses = [None] * self.n_folds
-        margins  = [None] * self.n_folds
 
-        YY = spdiag(Y)
+        contexts = [{	'idx':idx_e[i::self.n_folds],
+        				'alpha' :None,
+        				'gamma' :None
+        			} for i in range(self.n_folds)]
+
         beta = [0.0] * nk
         mu = np.exp(np.array(beta)-max(beta))
         mu /= mu.sum()
         
         Kc = summation(self.KL,mu)
-        Y = np.array(Y)
-        for _i,idx in enumerate(splits):
-            _,_,alphas[_i] = radius(Kc[idx][:,idx])
-            _,_,gammas[_i] = margin(Kc[idx][:,idx],Y[idx])
-        self._ratios = []
+        initial_ratio = []
+        for context in contexts:
+            idx = context['idx']
+            context['alpha'],r2 = radius(Kc[idx][:,idx],lam=self.lam)
+            context['gamma'],m2 = margin(Kc[idx][:,idx],Y[idx],lam=self.lam)
+            initial_ratio.append( (r2 / m2) / len(context['idx'])) 
+        initial_ratio = np.mean(initial_ratio)
+
+        self._ratios = [initial_ratio]
 
         cstep = self.step
         self._converg = False
@@ -95,79 +102,68 @@ class GRAM(BaseEstimator, ClassifierMixin, MKL):
 
         while (not self._converg and (self._steps < self.max_iter)):
             self._steps += 1
-
-            new_ratio = 0.0
-            _beta = beta[:]
-            current_mu = mu[:]
-            for _i,idx in enumerate(splits):
-
-                #calcolo il gradiente
-                Ks = Kc[idx][:,idx]
-                YYs = YY[idx,idx]
-                eb = np.exp(np.array(_beta))
-
-                a = np.array([1.0-(alphas[_i]['x'].T*matrix(K[idx][:,idx])*alphas[_i]['x'])[0] for K in self.KL])
-                b = np.array([(gammas[_i]['x'].T*YYs*matrix(K[idx][:,idx])*YYs*gammas[_i]['x'])[0] for K in self.KL])            
-                den = [np.dot(eb,b)**2]*nk
-                num = [eb[r] * (a[r]*np.dot(eb,b)   -   b[r]*np.dot(eb,a)) for r in range(nk)]
-
-                #calcolo i pesi temporanei
-                _beta = [_beta[k] - cstep * (num[k]/den[k]) for k in range(nk)]
-                current_mu = np.exp(_beta-max(_beta))
-                current_mu /= current_mu.sum()
-                #print _i,current_mu
-                #testo la nuova soluzione
-                try:
-                  Kc = summation(self.KL,current_mu)
-                  _r, _, alphas[_i] = radius(Kc[idx][:,idx],init_sol=alphas[_i].copy())
-                  _m, _, gammas[_i] = margin(Kc[idx][:,idx],Y[idx],init_sol=gammas[_i].copy())
-                  radiuses[i] = _r
-                  margins[i]  = _m
+            
+            new_beta = beta[:]
+            new_ratio = []
+            for context in contexts:
+            	idx = context['idx']
+                new_beta = self.update_grad(Kc,YY,new_beta,context,cstep)
+                new_mu = np.exp(new_beta-max(new_beta))
+                new_mu /= new_mu.sum()
+                new_Kc = summation(self.KL,new_mu)
+                try :
+                    new_alpha,r2 = radius(new_Kc[idx][:,idx]       ,lam=self.lam, init_sol=context['alpha'].copy())
+                    new_gamma,m2 = margin(new_Kc[idx][:,idx],Y[idx],lam=self.lam, init_sol=context['gamma'].copy())
                 except :
-                    Kc = summation(self.KL,current_mu)
-                    _r, _, alphas[_i] = radius(Kc[idx][:,idx])
-                    _m, _, gammas[_i] = margin(Kc[idx][:,idx],Y[idx])
-                    radiuses[i] = _r
-                    margins[i]  = _m
-                    #print '### warning at step %d:' % self._steps
-                    #print 'current weights:', current_mu
-                    #print "Unexpected error:", sys.exc_info()
-                    #current_mu = mu[:]
-                    cstep /= 2.0
+                    new_alpha,r2 = radius(Kc[idx][:,idx]       ,lam=self.lam)
+                    new_gamma,m2 = margin(Kc[idx][:,idx],Y[idx],lam=self.lam)
+                new_ratio.append( (r2 / m2) / len(idx) ) 
+            new_ratio = np.mean(new_ratio)
 
-
-
-
-                #new_ratio += (_r**2/_m**2) / len(idx)
-                new_ratio += (radiuses[i]**2/margins[i]**2) / len(idx)
-
-            new_ratio /= self.n_folds
-            #print self._steps,new_ratio
-
-            #caso 1: primo passo o soluzione migliorativa
-            if not self._ratios or self._ratios[-1] > new_ratio:
-                #aggiorno lo stato
-                #print 'soluzione migliorativa'
-                beta = _beta
-                mu = current_mu
-                self.weights = np.array([mm for mm in mu])
-                self._ratios.append(new_ratio)
-
-            #caso 2: soluzione peggiorativa
-            elif self._ratios[-1] <= new_ratio:
-                print 'passo peggiorativo, (%f)' % cstep
-                cstep /= 2.0
-
-            #controllo sulla convergenza
-            if     cstep <= 1e-8 or     \
-            	( len(self._ratios)>=2 and abs(self._ratios[-1]-self._ratios[-2]) <= 1e-10 and self._steps>10):
-                self._converg = True
-                print 'convergenza',cstep
-
-        
-        #self.weights = np.array(mu)
+            if not self._ratios or new_ratio < self._ratios[-1]:# or self._steps < 2:
+            	beta = new_beta[:]
+            	mu   = np.exp(beta-max(beta))
+            	mu   /= mu.sum()
+            	Kc = new_Kc
+            	self._ratios.append(new_ratio)
+            	print self._steps,new_ratio,'ok',cstep
+            else:
+            	cstep /= 10.0
+                print self._steps,new_ratio,'peggiorativo', self._ratios[-1],cstep
+                if cstep < 1e-10:
+                    self._converg=True
+                continue
+            
+        self.weights = np.array(mu)
         self.ker_matrix = summation(self.KL,self.weights)
         return self.ker_matrix
+
+
+
+        
+
+    def update_grad(self,Kc, YY, _beta, context, cstep):
+        idx = context['idx']
+        alpha = context['alpha']
+        gamma = context['gamma']
+        Ks = Kc[idx][:,idx]
+        YYs = YY[idx,idx]
+        eb = np.exp(np.array(_beta))
+
+        a = np.array([1.0-(alpha['x'].T*matrix(K[idx][:,idx])*alpha['x'])[0] for K in self.KL])
+        b = np.array([(gamma['x'].T*YYs*matrix(K[idx][:,idx])*YYs*gamma['x'])[0] for K in self.KL])            
+        den = [np.dot(eb,b)**2]*self.n_kernels
+        num = [eb[r] * (a[r]*np.dot(eb,b)   -   b[r]*np.dot(eb,a)) for r in range(self.n_kernels)]
+        
+        new_beta = np.array([_beta[k] - cstep * (num[k]/den[k]) for k in range(self.n_kernels)])
+        new_beta = new_beta - new_beta.max()
+        return new_beta
+
+
+
+
+
+
 
  
     def get_params(self, deep=True):
