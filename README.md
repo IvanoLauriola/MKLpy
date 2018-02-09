@@ -36,6 +36,7 @@ To work properly, MKLpy requires:
 
 * cvxopt
 
+* mpmath
 
 examples
 --------

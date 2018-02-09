@@ -12,6 +12,7 @@ setup(
         "numpy",
         "scipy",
         "cvxopt",
+        "mpmath",
         "scikit-learn"
   ],
   license = "MIT",
@@ -69,6 +70,7 @@ To work properly, MKLpy requires:
 
 * cvxopt
 
+* mpmath
 
 examples
 --------
