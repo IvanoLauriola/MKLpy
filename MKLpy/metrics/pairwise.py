@@ -73,12 +73,12 @@ def SSK_kernel(X, T=None, k=2):
 #----------BOOLEAN KERNELS----------
 
 def monotone_conjunctive_kernel(X,T=None,c=2):
-    T = X if type(T) == types.NoneType else T
+    X, T = check_X_T(X, T)
     L = np.dot(X,T.T)
     return binom(L,c)
 
 def monotone_disjunctive_kernel(X,T=None,d=2):
-    T = X if type(T) == types.NoneType else T
+    X, T = check_X_T(X, T)
     L = np.dot(X,T.T)
     n = X.shape[1]
 
@@ -96,7 +96,7 @@ def monotone_disjunctive_kernel(X,T=None,d=2):
 
 
 def monotone_dnf_kernel(X,T=None,d=2,c=2):
-    T = X if type(T) == types.NoneType else T
+    X, T = check_X_T(X, T)
     n = X.shape[1]
     n_c = binom(n,c)
     XX = np.dot(X.sum(axis=1).reshape(X.shape[0],1), np.ones((1,T.shape[0])))
