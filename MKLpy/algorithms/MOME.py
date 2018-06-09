@@ -17,6 +17,22 @@ from MKLpy.arrange import summation
 from MKLpy.algorithms import KOMD
 
 
+def margin(K,YY,lam=0,init_sol=None):
+    n = K.shape[0]
+    K = matrix(K)
+    lambdaDiag = spdiag([lam]*n)
+    P = 2*( (1-lam) * (YY*K*YY) + lambdaDiag )
+    p = matrix([0.0]*n)
+    G = -spdiag([1.0]*n)
+    h = matrix([0.0]*n)
+    A = matrix([[1.0 if YY[i,i]==+1 else 0 for i in range(n)],
+                [1.0 if YY[j,j]==-1 else 0 for j in range(n)]]).T
+    b = matrix([[1.0],[1.0]],(2,1))
+    solvers.options['show_progress']=False
+    sol = solvers.qp(P,p,G,h,A,b,initvals=init_sol)
+    margin2 = sol['dual objective'] - (sol['x'].T * lambdaDiag * sol['x'])[0]
+    return sol,margin2
+
 
 class MOME(BaseEstimator, ClassifierMixin, MKL):
 
@@ -35,14 +51,16 @@ class MOME(BaseEstimator, ClassifierMixin, MKL):
         nn = len(Y)
         nk = self.n_kernels
         YY = spdiag(Y)
+        #YY = np.diag(Y)
         beta = [0.0] * nk
         mu = np.exp(beta)
         mu /= mu.sum()
         
-        #actual_weights = eta[:]
         actual_ratio = None
+        _sol = None
         Q = np.array([[np.dot(self.KL[r].ravel(),self.KL[s].ravel()) for r in range(nk)] for s in range(nk)])
         Q /= np.sum([frobenius(K)**2 for K in self.KL])
+        #self._H = [ YY * K * YY for K in self.KL]
 
         self.sr,self.margin = [],[]
         self.obj = []
@@ -52,11 +70,19 @@ class MOME(BaseEstimator, ClassifierMixin, MKL):
         for i in xrange(self.max_iter):
             Kc = summation(self.KL,mu)
             #trovo i gamma
-            clf = KOMD(kernel='precomputed',lam=self.lam).fit(Kc,Y)
-            gamma = clf.gamma
-            _margin = (gamma.T * YY * matrix(Kc) * YY * gamma)[0]
-            #m = (gamma.T * YY * matrix(Kc) * YY * gamma)[0]
-            grad = np.array([(self.C * np.dot(Q[r],mu) + (gamma.T * YY * matrix(self.KL[r]) * YY * gamma)[0]) \
+            #clf = KOMD(kernel='precomputed',lam=self.lam).fit(Kc,Y)
+            try:
+                _sol,_margin = margin(Kc,YY,lam=self.lam,init_sol=None)#_sol)
+            except:
+                _sol,_margin = margin(Kc,YY,lam=self.lam,init_sol=None)
+            gamma = _sol['x']
+
+            #gamma = np.matrix(clf.gamma)
+            #_margin = (gamma.T * YY * Kc * YY * gamma)[0,0]
+
+
+            #grad = np.array([(self.C * np.dot(Q[r],mu) + (gamma.T * self._H[r] * gamma)[0,0]) \
+            grad = np.array([(self.C * np.dot(Q[r],mu) + (gamma.T * YY * matrix(self.KL[r]) * YY * gamma)[0,0]) \
                     * mu[r] * (1- mu[r]) \
                       for r in range(nk)])
             _beta = beta + cstep * grad
@@ -64,7 +90,10 @@ class MOME(BaseEstimator, ClassifierMixin, MKL):
             _mu /= _mu.sum()
 
             _obj = _margin+(self.C/2)* np.dot(_mu,np.dot(_mu,Q))
-            if (self.obj and _obj<self.obj[-1]) or _margin < 1.e-4:  # nel caso di peggioramento
+
+            if (self.obj and _obj<self.obj[-1]) or _margin < 1.e-5:  # nel caso di peggioramento
+                _mu = mu
+                _beta = beta
                 cstep /= 2.0
                 if cstep < 0.00001: break
             else : 
