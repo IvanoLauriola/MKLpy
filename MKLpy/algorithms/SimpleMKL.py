@@ -16,6 +16,7 @@ import numpy as np
 from MKLpy.arrange import summation
 
 
+
 class SimpleMKL(BaseEstimator, ClassifierMixin, MKL):
 
     def __init__(self, estimator=SVC(), C=1, step=1, generator=HPK_generator(n=10), multiclass_strategy='ova', max_iter=500, tol=1e-7, verbose=False):
@@ -26,14 +27,12 @@ class SimpleMKL(BaseEstimator, ClassifierMixin, MKL):
 
 
     def _arrange_kernel(self):
-    	print "WARNING: probably not working"
         Y = [1 if y==self.classes_[1] else -1 for y in self.Y]
         n = len(self.Y)
         YY = spdiag(Y)
         actual_weights = np.ones(self.n_kernels) / (1.0 *self.n_kernels)    #current
         obj = None
         #weights = np.ones(self.n_kernels) / (1.0 *self.n_kernels)	#current
-        print actual_weights
         self.objs = []
         cstep = self.step
         self.margin=[]
@@ -57,7 +56,6 @@ class SimpleMKL(BaseEstimator, ClassifierMixin, MKL):
             		np.sum([grad[v]-grad[mu] for v in range(self.n_kernels) if grad[v]>0]) if j==mu 	else\
             		0
             	for j in range(self.n_kernels)]
-            print 'd',D
 
             #aggiorno i pesi dato il gradiente
             weights = actual_weights + cstep * np.array(D)	#originalmente era un +
@@ -92,10 +90,10 @@ class SimpleMKL(BaseEstimator, ClassifierMixin, MKL):
             
                 obj = new_obj
                 actual_weights = weights
-                print actual_weights,obj
                 self.objs.append(obj)
             else:
                 #supero il minimo
+                print new_obj,obj
                 weights = actual_weights
                 cstep /= 2.0
                 print i,'overflow',cstep
