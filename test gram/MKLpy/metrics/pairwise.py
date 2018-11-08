@@ -21,7 +21,6 @@ from scipy.special import binom
 from scipy.sparse import issparse
 from MKLpy.utils import bignom
 from MKLpy.utils.validation import check_X_T
-import types
 
 def HPK_kernel(X, T=None, degree=2):
     """performs the HPK kernel between the samples matricex *X* and *T*.
@@ -73,12 +72,12 @@ def SSK_kernel(X, T=None, k=2):
 #----------BOOLEAN KERNELS----------
 
 def monotone_conjunctive_kernel(X,T=None,c=2):
-    X, T = check_X_T(X, T)
+    T = X if type(T) == types.NoneType else T
     L = np.dot(X,T.T)
     return binom(L,c)
 
 def monotone_disjunctive_kernel(X,T=None,d=2):
-    X, T = check_X_T(X, T)
+    T = X if type(T) == types.NoneType else T
     L = np.dot(X,T.T)
     n = X.shape[1]
 
@@ -96,7 +95,7 @@ def monotone_disjunctive_kernel(X,T=None,d=2):
 
 
 def monotone_dnf_kernel(X,T=None,d=2,c=2):
-    X, T = check_X_T(X, T)
+    T = X if type(T) == types.NoneType else T
     n = X.shape[1]
     n_c = binom(n,c)
     XX = np.dot(X.sum(axis=1).reshape(X.shape[0],1), np.ones((1,T.shape[0])))
@@ -104,25 +103,3 @@ def monotone_dnf_kernel(X,T=None,d=2,c=2):
     XXc = binom(XX,c)
     TTc = binom(TT,c)
     return binom(n_c,d) - binom(n_c - XXc, d) - binom(n_c - TTc.T, d) + binom(my_mdk(X,T,c),d)
-
-
-def monotone_cnf_kernel(X,T=None,c=2,d=2):
-    pass
-
-def conjunctive_kernel(X,T=None,c=2):
-    pass
-
-def disjunctive_kernel(X,T=None,d=2):
-    pass
-
-def dnf_kernel(X,T=None,d=2,c=2):
-    pass
-
-def cnf_kernel(X,T=None,c=2,d=2):
-    pass
-
-def tanimoto_kernel(X,T=None):#?
-    T = X if type(T) == types.NoneType else T
-    L = np.dot(X,T.T)
-    xx = np.linalg.norm(X,axis=1)
-    tt = np.linalg.norm(T,axis=1)

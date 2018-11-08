@@ -8,43 +8,12 @@ from base import MKL
 from MKLpy.multiclass import OneVsOneMKLClassifier as ovoMKL, OneVsOneMKLClassifier as ovaMKL   #ATTENZIONE DUE OVO
 from MKLpy.utils.exceptions import ArrangeMulticlassError
 from MKLpy.lists import HPK_generator
+from MKLpy.metrics import radius, margin
  
 from cvxopt import matrix, spdiag, solvers
 import numpy as np
  
 from MKLpy.arrange import summation
-
-def radius(K,lam=0,init_sol=None): 
-    n = K.shape[0]
-    K = matrix(K)
-    P = 2 * ( (1-lam) * K + spdiag([lam]*n) )
-    p = -matrix([K[i,i] for i in range(n)])
-    G = -spdiag([1.0] * n)
-    h = matrix([0.0] * n)
-    A = matrix([1.0] * n).T
-    b = matrix([1.0])
-    solvers.options['show_progress']=False
-    sol = solvers.qp(P,p,G,h,A,b,initvals=init_sol)
-    radius2 = (-p.T * sol['x'])[0] - (sol['x'].T * K * sol['x'])[0]
-    return sol, np.sqrt(radius2)
-
-def margin(K,Y,lam=0,init_sol=None):
-    n = len(Y)
-    YY = spdiag(list(Y))
-    K = matrix(K)
-    lambdaDiag = spdiag([lam]*n)
-    P = 2*( (1-lam) * (YY*K*YY) + lambdaDiag )
-    p = matrix([0.0]*n)
-    G = -spdiag([1.0]*n)
-    h = matrix([0.0]*n)
-    A = matrix([[1.0 if Y[i]==+1 else 0 for i in range(n)],
-                [1.0 if Y[j]==-1 else 0 for j in range(n)]]).T
-    b = matrix([[1.0],[1.0]],(2,1))
-    solvers.options['show_progress']=False
-    sol = solvers.qp(P,p,G,h,A,b,initvals=init_sol)
-    margin2 = sol['dual objective'] - (sol['x'].T * lambdaDiag * sol['x'])[0]
-    return sol,np.sqrt(abs(margin2))
-
 
 
 class RMKL(BaseEstimator, ClassifierMixin, MKL):
@@ -59,7 +28,7 @@ class RMKL(BaseEstimator, ClassifierMixin, MKL):
     def _arrange_kernel(self):
         Y = [1 if y==self.classes_[1] else -1 for y in self.Y]
         n = len(self.Y)
-        R = np.array([radius(K)[1] for K in self.KL])
+        R = np.array([radius(K) for K in self.KL])
         YY = matrix(np.diag(self.Y))
 
         actual_weights = np.ones(self.n_kernels) / (1.0 *self.n_kernels)    #current
@@ -68,7 +37,6 @@ class RMKL(BaseEstimator, ClassifierMixin, MKL):
 
         self.ratios = []
         cstep = self.step
-        sol_radius,sol_margin = None,None
         for i in xrange(self.max_iter):
             ru2 = np.dot(actual_weights,R**2)
             C = self.C / ru2
@@ -92,9 +60,7 @@ class RMKL(BaseEstimator, ClassifierMixin, MKL):
 
 
             Kc = summation(self.KL,weights)
-            sol_radius, _r = radius(Kc,init_sol=sol_radius)
-            sol_margin, _m = margin(Kc,Y,init_sol=sol_margin)
-            new_ratio = _r**2 / _m**2
+            new_ratio = radius(Kc)**2 / margin(Kc,Y)**2
 
             if actual_ratio and abs(new_ratio - actual_ratio)/n < self.tol:
                 #completato

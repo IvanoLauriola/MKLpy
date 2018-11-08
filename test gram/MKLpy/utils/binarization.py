@@ -89,8 +89,8 @@ class MDLPBinarizer(Binarizer):
 		X_left  = self.__get_id_by_condition(X, feature, lambda f : f <= cut_point)
 		X_right = self.__get_id_by_condition(X, feature, lambda f : f >  cut_point)
 	
-		return self.__entropy(y) - 1./ float(X.shape[0]) * (len(X_left ) * self.__entropy(y[X_left] ) \
-								 						  + len(X_right) * self.__entropy(y[X_right]))
+		return self.__entropy(y) - (len(X_left)  / float(X.shape[0])) * self.__entropy(y[X_left] ) \
+								 - (len(X_right) / float(X.shape[0])) * self.__entropy(y[X_right])
 				
 
 	def criterion(self, XX, yy, feature, cut_point):
