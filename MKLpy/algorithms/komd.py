@@ -206,10 +206,10 @@ class KOMD(BaseEstimator, ClassifierMixin):
         sol = solvers.qp(Q,p,G,h,A,b)
         self.gamma = sol['x']
         if self.verbose:
-            print '[KOMD]'
-            print 'optimization finished, #iter = ', sol['iterations']
-            print 'status of the solution: ', sol['status']
-            print 'objval: ', sol['primal objective']
+            print('[KOMD]')
+            print('optimization finished, #iter = ', sol['iterations'])
+            print('status of the solution: ', sol['status'])
+            print('objval: ', sol['primal objective'])
             
         bias = 0.5 * self.gamma.T * ker_matrix * YY * self.gamma
         self.bias = bias
@@ -246,7 +246,7 @@ class KOMD(BaseEstimator, ClassifierMixin):
                 "verbose":self.verbose, "multiclass_strategy":self.multiclass_strategy}
 
     def set_params(self, **parameters):
-        for parameter, value in parameters.items():
+        for parameter, value in list(parameters.items()):
             setattr(self,parameter,value)
         return self
 

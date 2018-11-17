@@ -3,7 +3,7 @@
 """
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.svm import SVC
-from base import MKL
+from MKLpy.base import MKL
 from MKLpy.multiclass import OneVsOneMKLClassifier as ovoMKL, OneVsOneMKLClassifier as ovaMKL   #ATTENZIONE DUE OVO
 from MKLpy.utils.exceptions import ArrangeMulticlassError
 from MKLpy.lists import HPK_generator
