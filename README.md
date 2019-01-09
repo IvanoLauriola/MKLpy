@@ -11,7 +11,7 @@ This package contains:
   * Average of kernels
   * Soon available: GRAM, MEMO, SimpleMKL
 
-* tools to operate over kernels, such as normalization, centering, summation, mean...;
+* tools to operate on kernels, such as normalization, centering, summation, mean...;
 
 * metrics, such as kernel_alignment, radius, margin, spectral ratio...;
 
