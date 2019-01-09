@@ -30,6 +30,6 @@ To work properly, MKLpy requires:
 
 * numpy
 
-* scikit-learn
+* scikit-learn (v. 0.20.0)
 
 * cvxopt
