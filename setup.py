@@ -14,7 +14,7 @@ setup(
         "cvxopt",
         "scikit-learn"
   ],
-  license = "MIT",
+  license = "GNU General Public License v3.0",
   description = 'A package for Multiple Kernel Learning scikit-compliant',
   author = 'Lauriola Ivano',
   author_email = 'ivano.lauriola@phd.unipd.it',
