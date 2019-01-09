@@ -1,10 +1,9 @@
 import numpy as np
+import types
+
 
 def identity_kernel(n):
     return np.diag(np.ones(n))
-    
-def diagonal(L):    # useless
-    return np.diagonal(L)
 
 def to_diagonal(K):
     return np.diagonal([K[i,i] for i in range(K.shape[0])])
@@ -27,7 +26,6 @@ def ideal_kernel(y, z=None):
     K : (l,n) ndarray,
         the ideal kernel matrix.
     """
-    if z==None:
-        z = y
+    z = y if type(z) == types.NoneType else z
     return np.dot(np.array([y]).T,np.array([z]))
 

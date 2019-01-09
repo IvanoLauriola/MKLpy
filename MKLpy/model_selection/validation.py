@@ -16,7 +16,7 @@ def __def_score__(score):
 def cross_val_score(KL, Y, estimator, cv=None, n_folds=3, score='roc_auc', random_state=None):
     return _cross_val (KL, Y, estimator, 'decision_function', cv, n_folds, score, random_state)
 
-def cross_val_predict(KL, Y, estimator, cv=None, n_folds=3, score='roc_auc', random_state=None):
+def cross_val_predict(KL, Y, estimator, cv=None, n_folds=3, score='accuracy', random_state=None):
     return _cross_val (KL, Y, estimator, 'predict', cv, n_folds, score, random_state)
 
 
@@ -24,9 +24,9 @@ def _cross_val(KL, Y, estimator, f, cv=None, n_folds=3, score='roc_auc', random_
     f = getattr(estimator,f)
     n = len(Y)
     score = __def_score__(score)
-    cv   = cv or KFold(n_folds,random_state = random_state).split(Y,Y)
+    cv   = cv or KFold(n_folds,random_state = random_state)
     scores = []
-    for train,test in cv:
+    for train,test in cv.split(Y,Y):
         KLtr = [K[train][:,train]for K in KL]
         KLte = [K[test][:,train]for K in KL]
         clf = estimator.fit(KLtr,Y[train])

@@ -19,11 +19,10 @@ import numpy as np
 import cvxopt as co #TODO: remove this, using only numpy
 from scipy.special import binom
 from scipy.sparse import issparse
-from MKLpy.utils import bignom
 from MKLpy.utils.validation import check_X_T
 import types
 
-def HPK_kernel(X, T=None, degree=2):
+def homogeneous_polynomial_kernel(X, T=None, degree=2):
     """performs the HPK kernel between the samples matricex *X* and *T*.
     The HPK kernel is defines as:
     .. math:: k(x,z) = \langle x,z \rangle^d
@@ -44,30 +43,6 @@ def HPK_kernel(X, T=None, degree=2):
     
     X, T = check_X_T(X, T)
     return np.dot(X,T.T)**degree
-
-
-def SSK_kernel(X, T=None, k=2):
-    """performs the SSK kernel between the samples matricex *X* and *T*.
-    Note that this is a kernel for STRINGS and text categorization.
-
-    Parameters
-    ----------
-    X : (n,m) array_like,
-        the train samples matrix.
-    T : (l,m) array_like,
-        the test samples matrix. If it is not defined, then the kernel is calculated
-        between *X* and *X*.
-
-    Returns
-    -------
-    K : (l,n) ndarray,
-        the SSK kernel matrix.
-    """
-    #TODO
-    return
-
-
-
 
 
 #----------BOOLEAN KERNELS----------

@@ -39,5 +39,5 @@ MKLpy is divided into subpackages, using any of these requires an explicit impor
 #import algorithms,lists,metrics,test,utils
 
 __all__ = ['algorithms',
-           'lists',
-           'utils']
+           'utils',
+           'preprocessing']

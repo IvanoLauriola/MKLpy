@@ -9,11 +9,11 @@ by Fabio Aiolli and Michele Donini
 Paper @ http://www.math.unipd.it/~mdonini/publications.html
 """
 from sklearn.base import BaseEstimator, ClassifierMixin
-from base import MKL
-from MKLpy.multiclass import OneVsOneMKLClassifier as ovoMKL, OneVsOneMKLClassifier as ovaMKL   #ATTENZIONE DUE OVO
-from MKLpy.utils.exceptions import ArrangeMulticlassError
-from MKLpy.algorithms import KOMD
-from MKLpy.lists import HPK_generator
+from .base import MKL
+from ..multiclass import OneVsOneMKLClassifier as ovoMKL, OneVsRestMKLClassifier as ovaMKL
+from ..utils.exceptions import BinaryProblemError
+from .komd import KOMD
+from ..lists import HPK_generator
  
 from cvxopt import matrix, spdiag, solvers
 import numpy as np
@@ -55,10 +55,10 @@ class EasyMKL(BaseEstimator, ClassifierMixin, MKL):
         sol = solvers.qp(Q,p,G,h,A,b)
         gamma = sol['x']
         if self.verbose:
-            print '[EasyMKL]'
-            print 'optimization finished, #iter = ', sol['iterations']
-            print 'status of the solution: ', sol['status']
-            print 'objval: ', sol['primal objective']
+            print ('[EasyMKL]')
+            print ('optimization finished, #iter = %d' % sol['iterations'])
+            print ('status of the solution: %s' % sol['status'])
+            print ('objval: %.5f' % sol['primal objective'])
 
         yg = gamma.T * YY
         weights = [(yg*matrix(K)*yg.T)[0] for K in self.KL]

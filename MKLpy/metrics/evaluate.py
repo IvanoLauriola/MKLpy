@@ -58,10 +58,10 @@ def margin(K,Y):
     Y : (n) array_like,
         the labels vector.
     """
-    K, Y = check_K_Y(K,Y)
+    K, Y = check_K_Y(K,Y,binary=True)
     n = Y.shape[0]
-    Y = np.array([1 if y==Y[0] else -1 for y in Y])
-    YY = spdiag(list(Y))
+    Y = [1 if y==Y[0] else -1 for y in Y]
+    YY = spdiag(Y)
     P = 2*(YY*matrix(K)*YY)
     p = matrix([0.0]*n)
     G = -spdiag([1.0]*n)
@@ -72,14 +72,6 @@ def margin(K,Y):
     solvers.options['show_progress']=False
     sol = solvers.qp(P,p,G,h,A,b)
     return np.sqrt(sol['primal objective'])
-
-def margin_multiclass(K,Y,method='ovr'):
-    margins = []
-    n = len(Y)
-    for y in np.unique(Y):
-        labels = np.array([1 if Y[i]==y else -1 for i in range(n)])
-        margins.append(margin(K,labels))
-    return margins
 
 def ratio(K,Y):
     """evaluate the ratio between the radius of MEB and the margin in feature space.

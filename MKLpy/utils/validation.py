@@ -17,13 +17,17 @@ from sklearn.utils import column_or_1d, check_X_y
 from cvxopt import matrix
 import numpy as np
 import types
-from exceptions import SquaredKernelError
+from .exceptions import SquaredKernelError
  
 
 
 def check_is_matrix(M):
     '''check if M is a 2d matrix'''
     check_array(M)
+
+def check_X(X):
+    '''check a examples matrix X'''
+    check_array(X)
 
 
 def check_squared(K):
@@ -34,13 +38,18 @@ def check_squared(K):
     return K.todense() if issparse(K) else K
 
 def check_X_T(X,T):
-    T = X if type(T) == types.NoneType else T
+    #T = X if type(T) == types.NoneType else T
+    T = T if T is not None else X
     return X,T
 
-def check_K_Y(K,Y):
+def check_K_Y(K,Y,binary=False):
     '''check if a kernel matrix K and labels vector Y are aligned'''
     K = check_squared(K)
-    K,Y = check_X_y(K,Y);
+    K,Y = check_X_y(K,Y)
+    if binary:
+        n_classes = len(np.unique(Y))
+        if n_classes > 2:
+            raise BinaryProblemError(n_classes)
     return K,Y
 
 

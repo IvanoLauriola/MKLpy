@@ -86,8 +86,7 @@ class KOMD(BaseEstimator, ClassifierMixin):
     >>>Y = np.array([1,1,1,-1,-1])
     >>>cls = KOMD()
     >>>cls = cls.fit(X,Y)
-    >>>print cls.predict([[1,1,5]])
-    [1]
+    >>>pred = cls.predict([[1,1,5]])
     
     References
     ----------
@@ -206,10 +205,10 @@ class KOMD(BaseEstimator, ClassifierMixin):
         sol = solvers.qp(Q,p,G,h,A,b)
         self.gamma = sol['x']
         if self.verbose:
-            print '[KOMD]'
-            print 'optimization finished, #iter = ', sol['iterations']
-            print 'status of the solution: ', sol['status']
-            print 'objval: ', sol['primal objective']
+            print ('[KOMD]')
+            print ('optimization finished, #iter = %d' % sol['iterations'])
+            print ('status of the solution: %s' % sol['status'])
+            print ('objval: %.5f' % sol['primal objective'])
             
         bias = 0.5 * self.gamma.T * ker_matrix * YY * self.gamma
         self.bias = bias

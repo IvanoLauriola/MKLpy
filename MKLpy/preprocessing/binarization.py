@@ -9,6 +9,10 @@ class Binarizer():
 	def fit(self,X,Y):
 		raise NotImplementedError('Not implemented yet')
 
+	def fit_transform(self,X,Y):
+		self.fit(X,Y)
+		return self.transform(X)
+
 	def transform(self,X):
 		raise NotImplementedError('Not implemented yet')
 
@@ -22,9 +26,7 @@ class Binarizer():
 
 
 class AverageBinarizer(Binarizer):
-	''' performs a feature discretization, 1 if the value is over an average threshold, 0 else '''
-	def __init__(self):
-		return
+	''' performs a feature discretization, 1 if the feature is over the average value threshold, 0 else '''
 
 	def fit (self,X,Y):
 		self.cols = np.average(X,axis=0)
@@ -39,9 +41,6 @@ class AverageBinarizer(Binarizer):
 
 
 class EntropyBinarizer(Binarizer):
-
-	def __init__(self):
-		pass
 
 	def fit(self,X,Y):
 		n,m = X.shape[0],X.shape[1]
@@ -68,9 +67,6 @@ class EntropyBinarizer(Binarizer):
 
 
 class MDLPBinarizer(Binarizer):
-	
-	def __init__(self):
-		return
 
 	def __entropy(self, y):
 		N = float(len(y))
