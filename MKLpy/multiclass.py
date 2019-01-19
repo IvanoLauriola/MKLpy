@@ -71,6 +71,7 @@ class OneVsOneMKLClassifier():
         wmodels = {}
         combinations = {}
         functional_form = self.clf1.how_to
+        
 
 
         for dicho in list_of_dichos:
@@ -82,9 +83,10 @@ class OneVsOneMKLClassifier():
                        np.array(list_of_labels_train[dicho]))
             wmodels[dicho] = [w / sum(cc.weights) for w in cc.weights]
             combinations[dicho] = ker_matrix#cc.ker_matrix
+
             del cc
         
-        self.kernels = combinations #mi serve solo per alcuni test
+        self.ker_matrices = combinations #mi serve solo per alcuni test
         # Train SVM
         if self.verbose:
             print ('SVM training phase...')
@@ -107,6 +109,7 @@ class OneVsOneMKLClassifier():
         self.id_for_train = id_for_train
         self.list_of_indices = list_of_indices
         self.wmodels = wmodels
+        self.weights = wmodels
         self.functional_form = functional_form
         return self
 
@@ -159,6 +162,7 @@ class OneVsRestMKLClassifier():
             labels.update({l: [1 if _y == l else -1 for _y in Y]})
         weights = {}
         clfs = {}
+        ker_matrices = {}
 
         # learning the models
         for model in classes_:
@@ -174,7 +178,8 @@ class OneVsRestMKLClassifier():
             cc2.kernel = 'precomputed'
             cc2.fit(ker_matrix, labels[model])
             clfs.update({model: cc2})
-            del ker_matrix, cc1
+            ker_matrices.update({model:ker_matrix})
+            # del ker_matrix, cc1
 
         # save stuff
         self.classes_ = classes_
@@ -184,6 +189,7 @@ class OneVsRestMKLClassifier():
         self.clfs = clfs
         self.n_classes = n_classes
         self.classes_ = classes_
+        self.ker_matrices = ker_matrices
         self.is_fitted = True
         return self
 

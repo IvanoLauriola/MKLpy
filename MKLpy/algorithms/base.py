@@ -53,6 +53,8 @@ class MKL(object):
 		if self.multiclass_ :
 			metaClassifier = OneVsOneMKLClassifier if self.multiclass_strategy in ['ovo','OvO','1v1'] else OneVsRestMKLClassifier
 			self.clf = metaClassifier(self.__class__(**self.get_params())).fit(self.KL,self.Y)
+			self.weights = self.clf.weights
+			self.ker_matrix = self.clf.ker_matrices
 		else :
 			self._fit()					# fit the model
 
