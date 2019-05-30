@@ -1,6 +1,6 @@
 '''
 
-This is a snippet of code showing ho to select the hyper-parameters
+This is a snippet of code showing how to select the hyper-parameters
 of a MKL method using boolean kernels
 
 Author: Ivano Lauriola, ivano.lauriola@phd.unipd.it

@@ -1,6 +1,6 @@
 '''
 
-This is a snippet of code showing ho to train a MKL algorithm
+This is a snippet of code showing how to train a MKL algorithm
 
 Author: Ivano Lauriola, ivano.lauriola@phd.unipd.it
 

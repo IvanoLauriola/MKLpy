@@ -8,41 +8,16 @@ Kernel functions
 
 .. currentmodule:: MKLpy.metrics.pairwise
 
-This module contains all kernel functions of MKLpy. These kernels can be classified in
-tho classes:
-* kernels used in learning phases, such as HPK as SSK;
-* kernels used in evaluation, such as identity and ideal kernel.
+This module contains all boolean kernel functions of MKLpy
 
 """
 
 import numpy as np
-import cvxopt as co #TODO: remove this, using only numpy
 from scipy.special import binom
 from scipy.sparse import issparse
 from MKLpy.utils.validation import check_X_T
 import types
 
-def homogeneous_polynomial_kernel(X, T=None, degree=2):
-    """performs the HPK kernel between the samples matricex *X* and *T*.
-    The HPK kernel is defines as:
-    .. math:: k(x,z) = \langle x,z \rangle^d
-
-    Parameters
-    ----------
-    X : (n,m) array_like,
-        the train samples matrix.
-    T : (l,m) array_like,
-        the test samples matrix. If it is not defined, then the kernel is calculated
-        between *X* and *X*.
-
-    Returns
-    -------
-    K : (l,n) ndarray,
-        the HPK kernel matrix.
-    """
-    
-    X, T = check_X_T(X, T)
-    return np.dot(X,T.T)**degree
 
 
 #----------BOOLEAN KERNELS----------
@@ -101,3 +76,5 @@ def tanimoto_kernel(X,T=None):#?
     L = np.dot(X,T.T)
     xx = np.linalg.norm(X,axis=1)
     tt = np.linalg.norm(T,axis=1)
+
+
