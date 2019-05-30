@@ -2,34 +2,36 @@ MKLpy
 =====
 
 
-MKLpy is a framework for Multiple Kernel Learning and kernel machines scikit-compliant.
+**MKLpy** is a framework for Multiple Kernel Learning (MKL)  inspired by the [scikit-learn](http://scikit-learn.org/stable) project.
 
 This package contains:
-
-* MKL algorithms
-  * EasyMKL
-  * Average of kernels
-  * Soon available: GRAM, MEMO, SimpleMKL
-
-* tools to operate on kernels, such as normalization, centering, summation, mean...;
-
-* metrics, such as kernel_alignment, radius, margin, spectral ratio...;
-
-* kernel functions, such as homogeneous polynomial and boolean kernels (disjunctive, conjunctive, DNF, CNF).
+* the implementation of some MKL algorithms, such as EasyMKL
+* tools to operate on kernels, such as normalization, centering, summation, average...;
+* metrics, such as kernel_alignment, radius of Minimum Enclosing Ball, margin between classes, spectral ratio...;
+* kernel functions, including boolean kernels (disjunctive, conjunctive, DNF, CNF) and string kernels (spectrum, fixed length and all subsequences).
 
 The 'examples' folder contains useful snippets of code.
 
 
-For more informations about classification, kernels and predictors visit `Link scikit-learn <http://scikit-learn.org/stable/>`_
 
-
-requirements
+Installation
 ------------
 
-To work properly, MKLpy requires:
+**MKLpy** is also available on PyPI:
+```sh
+pip install MKLpy
+```
 
-* numpy
+To work properly, **MKLpy** requires:
 
-* scikit-learn (v. 0.20.0)
+| resource       | website |
+| ------       | ------ |
+| numpy        | [https://www.numpy.org/](https://www.numpy.org/) |
+| scikit-learn | [https://scikit-learn.org/stable/](https://scikit-learn.org/stable/) |
+| cvxopt       | [https://cvxopt.org/](https://cvxopt.org/) |
 
-* cvxopt
+
+Examples
+--------
+The folder *examples* contains several scripts and snippets of codes to show the potentialities of **MKLpy**. The examples show how to train a classifier, how to process data, and how to use kernel functions.
+Currently, we ware working for a complete documentation.
