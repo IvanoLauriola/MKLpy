@@ -5,7 +5,7 @@ MKLpy
 **MKLpy** is a framework for Multiple Kernel Learning (MKL)  inspired by the [scikit-learn](http://scikit-learn.org/stable) project.
 
 This package contains:
-* the implementation of some MKL algorithms, such as EasyMKL
+* the implementation of some MKL algorithms, such as EasyMKL;
 * tools to operate on kernels, such as normalization, centering, summation, average...;
 * metrics, such as kernel_alignment, radius of Minimum Enclosing Ball, margin between classes, spectral ratio...;
 * kernel functions, including boolean kernels (disjunctive, conjunctive, DNF, CNF) and string kernels (spectrum, fixed length and all subsequences).
