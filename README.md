@@ -35,3 +35,13 @@ Examples
 --------
 The folder *examples* contains several scripts and snippets of codes to show the potentialities of **MKLpy**. The examples show how to train a classifier, how to process data, and how to use kernel functions.
 Currently, we ware working for a complete documentation.
+
+
+
+Work in progress
+----------------
+**MKLpy** is under development! We are working to integrate several features, including:
+* further MKL algorithms, such as GRAM, MEMO, and SimpleMKL;
+* more kernels for structured data;
+* incremental generators of kernels;
+* [tensorflow](https://www.tensorflow.org/) as backend **!**
