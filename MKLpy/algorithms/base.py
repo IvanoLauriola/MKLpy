@@ -1,36 +1,43 @@
-from sklearn.svm import SVC
+# -*- coding: latin-1 -*-
+
+"""
+@author: Ivano Lauriola
+@email: ivano.lauriola@phd.unipd.it
+
+This file is part of MKLpy: a scikit-compliant framework for Multiple Kernel Learning
+This file is distributed with the GNU General Public License v3 <http://www.gnu.org/licenses/>.  
+
+"""
+
 from sklearn.utils.multiclass import check_classification_targets
-from MKLpy.arrange import average
-from MKLpy.lists.generator import HPK_generator
-from MKLpy.utils.validation import process_list, check_KL_Y
-from MKLpy.multiclass import OneVsOneMKLClassifier, OneVsRestMKLClassifier
-import numpy as np
 from sklearn.base import BaseEstimator, ClassifierMixin
+from ..arrange import average, summation
+from ..lists.generator import HPK_generator
+from ..utils.validation import process_list, check_KL_Y
+from ..multiclass import OneVsOneMKLClassifier, OneVsRestMKLClassifier
+import numpy as np
 
-class MKL(object):
+class MKL(BaseEstimator, ClassifierMixin):
 
-	how_to     = None   # the functional form in combination
+	func_form  = None   # the functional form in combination
 	ker_matrix = None   # the obtained kernel matrix
 	weights    = None   # the weights used in combination
-	estimator  = None   # the base learner
+	learner    = None   # the base learner
 	n_kernels  = None   # the number of kernels used in combination
-
-
+	generator  = None   # the generator of kernels
 	KL 		   = None 	# the kernels list
-	generator  = None 	# 
 
-	def __init__(self,estimator,generator,how_to,multiclass_strategy,max_iter,verbose):
-		self.estimator = estimator
-		self.generator = generator
-		self.how_to = how_to
-		self.multiclass_strategy = multiclass_strategy
-		self.max_iter = max_iter
-		self.verbose = verbose
-		self.estimator.kernel='precomputed'
-		self.is_fitted = False
+	def __init__(self, learner, generator, func_form, multiclass_strategy, verbose):
+		self.learner     = learner
+		self.generator   = generator
+		self.func_form   = func_form
+		self.verbose     = verbose
+		self.is_fitted   = False
 		self.multiclass_ = None
-		self.classes_ = None
-		self.weights = None
+		self.classes_    = None
+		self.weights     = None
+		self.multiclass_strategy = multiclass_strategy
+		self.learner.kernel = 'precomputed'
 
 
 	def _prepare(self,X,Y):
@@ -62,38 +69,38 @@ class MKL(object):
 		return self
 
 	def _fit(self):
-		self.ker_matrix = self._arrange_kernel()	# call arrange_kernel without re-preprocess
-		self.estimator.fit(self.ker_matrix,self.Y)					# fit model using the base learner
+		self.ker_matrix = self._combine_kernels()	# call combine_kernels without re-preprocess
+		self.learner.fit(self.ker_matrix,self.Y)					# fit model using the base learner
 		return
 
-	def arrange_kernel(self,X,Y=None):
+	def combine_kernels(self,X,Y=None):
 		'''only kernels combination, with preprocess'''
 		self._prepare(X,Y)
 		if self.multiclass_:
-			raise ValueError("arrange_kernel requires binary classification problems")
-		return self._arrange_kernel()
+			raise ValueError("combine_kernels requires binary classification problems")
+		return self._combine_kernels()
 
 
-	def _arrange_kernel(self,KL,Y):
+	def _combine_kernels(self):
 		'''implemented in base class, return a kernel'''
-		raise NotImplementedError('Not implemented yet')
+		raise NotImplementedError('This method has to be implemented in the derived class')
 
 
 
 	def predict(self,X):
 		if not self.is_fitted :
-			raise NotFittedError("This KOMD instance is not fitted yet. Call 'fit' with appropriate arguments before using this method.")
+			raise NotFittedError("The base learner is not fitted yet. Call 'fit' with appropriate arguments before using this method.")
 		KL = process_list(X,self.generator)
-		return self.clf.predict(KL) if self.multiclass_ else self.estimator.predict(self.how_to(KL,self.weights))
-		#return self.estimator.decision_function(self.how_to(KL,self.weights))
+		return self.clf.predict(KL) if self.multiclass_ else self.learner.predict(self.func_form(KL,self.weights))
+		
 
 	def decision_function(self,X):
 		if self.is_fitted == False:
-			raise NotFittedError("This KOMD instance is not fitted yet. Call 'fit' with appropriate arguments before using this method.")
+			raise NotFittedError("The base learner is not fitted yet. Call 'fit' with appropriate arguments before using this method.")
 		if self.multiclass_:
 			raise ValueError('Scores are not available for multiclass problems, use predict')
 		KL = process_list(X,self.generator)				# X can be a samples matrix or Kernel List
-		return self.estimator.decision_function(self.how_to(KL,self.weights))
+		return self.learner.decision_function(self.func_form(KL,self.weights))
 
 
 
@@ -103,29 +110,14 @@ class MKL(object):
 		return self
 
 	def get_params(self,deep=True):
-		raise NotImplementedError('Not implemented yet')
+		raise NotImplementedError('This method has to be implemented in the derived class')
 
 
 
 
-class AverageMKL(BaseEstimator, ClassifierMixin, MKL):
-
-	def __init__(self, estimator=SVC(C=1), generator=HPK_generator(n=10), multiclass_strategy='ova', max_iter=100, verbose=False):
-		super(self.__class__, self).__init__(estimator=estimator, generator=generator, multiclass_strategy=multiclass_strategy, how_to=average, max_iter=max_iter, verbose=verbose)
-		#set other params
 
 
-	def _arrange_kernel(self):
-		self.weights = np.ones(self.n_kernels)/self.n_kernels	# weights vector is a np.ndarray
-		ker_matrix = self.how_to(self.KL,self.weights)		# combine kernels
-		return ker_matrix
 
-	def get_params(self, deep=True):
-		return {"estimator":self.estimator,
-				"generator":self.generator,
-				"verbose":self.verbose,
-				"multiclass_strategy":self.multiclass_strategy,
-				"max_iter":self.max_iter}
 
 
 

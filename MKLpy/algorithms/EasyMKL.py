@@ -1,27 +1,31 @@
 # -*- coding: latin-1 -*-
 """
-@author: Michele Donini
-@email: mdonini@math.unipd.it
+@author: Ivano Lauriola and Michele Donini
+@email: ivano.lauriola@phd.unipd.it
  
 EasyMKL: a scalable multiple kernel learning algorithm
 by Fabio Aiolli and Michele Donini
+
+This file is part of MKLpy: a scikit-compliant framework for Multiple Kernel Learning
+This file is distributed with the GNU General Public License v3 <http://www.gnu.org/licenses/>. 
  
 Paper @ http://www.math.unipd.it/~mdonini/publications.html
 """
-from sklearn.base import BaseEstimator, ClassifierMixin
+
 from .base import MKL
-from ..multiclass import OneVsOneMKLClassifier as ovoMKL, OneVsRestMKLClassifier as ovaMKL
-from ..utils.exceptions import BinaryProblemError
 from .komd import KOMD
+from ..multiclass import OneVsOneMKLClassifier as ovoMKL, OneVsRestMKLClassifier as ovaMKL
+from ..arrange import summation
+from ..utils.exceptions import BinaryProblemError
 from ..lists import HPK_generator
- 
+
 from cvxopt import matrix, spdiag, solvers
 import numpy as np
  
-from MKLpy.arrange import summation
+
  
  
-class EasyMKL(BaseEstimator, ClassifierMixin, MKL):
+class EasyMKL(MKL):
     ''' EasyMKL is a Multiple Kernel Learning algorithm.
         The parameter lam (lambda) has to be validated from 0 to 1.
  
@@ -31,12 +35,12 @@ class EasyMKL(BaseEstimator, ClassifierMixin, MKL):
  
         Paper @ http://www.math.unipd.it/~mdonini/publications.html
     '''
-    def __init__(self, estimator=KOMD(lam=0.1), lam=0.1, generator=HPK_generator(n=10), multiclass_strategy='ova', max_iter=100, verbose=False):
-        super(self.__class__, self).__init__(estimator=estimator, generator=generator, multiclass_strategy=multiclass_strategy, how_to=summation, max_iter=max_iter, verbose=verbose)
+    def __init__(self, learner=KOMD(lam=0.1), lam=0.1, generator=HPK_generator(n=10), multiclass_strategy='ova', verbose=False):
+        super(self.__class__, self).__init__(learner=learner, generator=generator, multiclass_strategy=multiclass_strategy, func_form=summation, verbose=verbose)
         self.lam = lam
 
         
-    def _arrange_kernel(self):
+    def _combine_kernels(self):
         Y = [1 if y==self.classes_[1] else -1 for y in self.Y]
         n_sample = len(self.Y)
         ker_matrix = matrix(summation(self.KL))
@@ -51,7 +55,7 @@ class EasyMKL(BaseEstimator, ClassifierMixin, MKL):
         b = matrix([[1.0],[1.0]],(2,1))
          
         solvers.options['show_progress'] = False
-        solvers.options['maxiters'] = self.max_iter
+        solvers.options['maxiters'] = 200
         sol = solvers.qp(Q,p,G,h,A,b)
         gamma = sol['x']
         if self.verbose:
@@ -75,4 +79,4 @@ class EasyMKL(BaseEstimator, ClassifierMixin, MKL):
         return {"lam": self.lam,
                 "generator": self.generator, "max_iter":self.max_iter,
                 "verbose":self.verbose, "multiclass_strategy":self.multiclass_strategy,
-                'estimator':self.estimator}
+                'learner':self.learner}

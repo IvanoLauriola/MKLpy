@@ -22,6 +22,13 @@ import itertools
 
 
 def spectrum_embedding(X, p=2, binary=False):
+	'''
+	Computes the spectrum embedding of a seuqnce.
+	The feature space contains the number of occurrences of all possible substrings
+
+	p: the length of substructures
+	binary: counts of occurrences or 1/0
+	'''
 	S = []
 	for x in X:
 		vx = {}
