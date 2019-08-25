@@ -45,3 +45,8 @@ Work in progress
 * more kernels for structured data;
 * incremental generators of kernels;
 * [tensorflow](https://www.tensorflow.org/) as backend **!**
+
+
+Citing MKLpy
+------------
+If you use MKLpy for a scientific purpose, please cite this library.
