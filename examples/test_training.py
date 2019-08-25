@@ -72,5 +72,5 @@ print ('Accuracy score: %.3f, roc AUC score: %.3f' % (accuracy, roc_auc))
 #MKL algorithms use a hard-margin as base learned (or KOMD in the case of EasyMKL). It is possible to define a different base learner
 from sklearn.svm import SVC
 base_learner = SVC(C=0.1)
-clf = EasyMKL(estimator=base_learner)
+clf = EasyMKL(learner=base_learner)
 clf = clf.fit(KLtr,Ytr)

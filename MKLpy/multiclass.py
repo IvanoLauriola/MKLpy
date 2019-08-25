@@ -20,7 +20,7 @@ class OneVsOneMKLClassifier():
     def __init__(self, clf1, verbose=False):
         #print 'init ovo'
         self.clf1 = clf1
-        self.clf2 = clf1.estimator
+        self.clf2 = clf1.learner
         self.verbose = verbose
         
     def get_params(self, deep=True):
@@ -70,7 +70,7 @@ class OneVsOneMKLClassifier():
         # LEARNING THE MODELS
         wmodels = {}
         combinations = {}
-        functional_form = self.clf1.how_to
+        functional_form = self.clf1.func_form
         
 
 
@@ -79,7 +79,7 @@ class OneVsOneMKLClassifier():
             cc = self.clf1.__class__(**self.clf1.get_params())
             cc.kernel = 'precomputed'
             #cc = cc.fit(np.array([kk[ind][:,ind]  for kk in K_tr]),
-            ker_matrix = cc.arrange_kernel(np.array([kk[ind][:,ind]  for kk in K_tr]),
+            ker_matrix = cc.combine_kernels(np.array([kk[ind][:,ind]  for kk in K_tr]),
                        np.array(list_of_labels_train[dicho]))
             wmodels[dicho] = [w / sum(cc.weights) for w in cc.weights]
             combinations[dicho] = ker_matrix#cc.ker_matrix
@@ -147,7 +147,7 @@ class OneVsOneMKLClassifier():
 class OneVsRestMKLClassifier():
     def __init__(self, clf1, verbose=False):
         self.clf1 = clf1
-        self.clf2 = clf1.estimator
+        self.clf2 = clf1.learner
         self.verbose = verbose
 
         self.is_fitted = False
@@ -170,7 +170,7 @@ class OneVsRestMKLClassifier():
             # learning the kernel
             cc1 = self.clf1.__class__(**self.clf1.get_params())
             cc1.kernel = 'precomputed'
-            ker_matrix = cc1.arrange_kernel(K_list, labels[model])
+            ker_matrix = cc1.combine_kernels(K_list, labels[model])
             weights.update({model: cc1.weights})
 
             # fitting the model
@@ -183,8 +183,8 @@ class OneVsRestMKLClassifier():
 
         # save stuff
         self.classes_ = classes_
-        self.functional_form = self.clf1.how_to
-        # self.functional_form = lambda X,Y : self.clf1.how_to
+        self.functional_form = self.clf1.func_form
+        # self.functional_form = lambda X,Y : self.clf1.func_form
         self.weights = weights
         self.clfs = clfs
         self.n_classes = n_classes

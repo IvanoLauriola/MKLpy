@@ -60,14 +60,14 @@ for lam in [0, 0.01, 0.1, 0.2, 0.9, 1]:	#possible lambda values for the EasyMKL 
 	#MKLpy.model_selection.cross_val_predict performs the cross validation automatically, it optimizes the accuracy
 	#the counterpart cross_val_score optimized the roc_auc_score (use score='roc_auc')
 	#WARNING: these functions will change in the next version
-	scores = cross_val_predict(KLtr, Ytr, EasyMKL(estimator=base_learner, lam=lam), n_folds=5, score='accuracy')
+	scores = cross_val_predict(KLtr, Ytr, EasyMKL(learner=base_learner, lam=lam), n_folds=5, score='accuracy')
 	acc = np.mean(scores)
 	if not best_results or best_results['score'] < acc:
 		best_results = {'lam' : lam, 'score' : acc}
 #evaluation on the test set
 from sklearn.metrics import accuracy_score
 print ('done')
-clf = EasyMKL(estimator=base_learner, lam=best_results['lam']).fit(KLtr,Ytr)
+clf = EasyMKL(learner=base_learner, lam=best_results['lam']).fit(KLtr,Ytr)
 y_pred = clf.predict(KLte)
 accuracy = accuracy_score(Yte, y_pred)
 print ('accuracy on the test set: %.3f, with lambda=%.2f' % (accuracy, best_results['lam']))
