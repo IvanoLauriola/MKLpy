@@ -19,24 +19,23 @@ import numpy as np
 
 class MKL(BaseEstimator, ClassifierMixin):
 
-	func_form  = None   # the functional form in combination
+	func_form  = None   # a function which taskes a list of kernels and their weights and returns the combination
 	ker_matrix = None   # the obtained kernel matrix
 	weights    = None   # the weights used in combination
-	learner    = None   # the base learner
 	n_kernels  = None   # the number of kernels used in combination
-	generator  = None   # the generator of kernels
 	KL 		   = None 	# the kernels list
 
-	def __init__(self, learner, generator, func_form, multiclass_strategy, verbose):
-		self.learner     = learner
-		self.generator   = generator
-		self.func_form   = func_form
-		self.verbose     = verbose
+
+	def __init__(self, learner, generator, multiclass_strategy, verbose):
+		self.learner     = learner		# the base learner which uses the combined kernel
+		self.generator   = generator 	# a generator of kernel matrices
+		self.verbose     = verbose 		# logging strategy
+		self.multiclass_strategy = multiclass_strategy # multiclass pattern ('ovo' or 'ovr')
+
 		self.is_fitted   = False
 		self.multiclass_ = None
 		self.classes_    = None
 		self.weights     = None
-		self.multiclass_strategy = multiclass_strategy
 		self.learner.kernel = 'precomputed'
 
 
@@ -45,10 +44,12 @@ class MKL(BaseEstimator, ClassifierMixin):
 		check_classification_targets(Y)
 		self.classes_ = np.unique(Y)
 		if len(self.classes_) < 2:
+			# these algorithms are meant for classification only
 			raise ValueError("The number of classes has to be almost 2; got ", len(self.classes_))
 		self.multiclass_ = len(self.classes_) > 2
 
-		KL = process_list(X,self.generator)				# X can be a samples matrix or Kernels List
+		# generate the kernels
+		KL = process_list(X,self.generator)	
 		self.KL, self.Y = check_KL_Y(KL,Y)
 		self.n_kernels = len(self.KL)
 		return
@@ -58,6 +59,7 @@ class MKL(BaseEstimator, ClassifierMixin):
 		self._prepare(X,Y)
 
 		if self.multiclass_ :
+			# a multiclass wrapper is used in case of multiclass target
 			metaClassifier = OneVsOneMKLClassifier if self.multiclass_strategy in ['ovo','OvO','1v1'] else OneVsRestMKLClassifier
 			self.clf = metaClassifier(self.__class__(**self.get_params())).fit(self.KL,self.Y)
 			self.weights = self.clf.weights
@@ -110,9 +112,10 @@ class MKL(BaseEstimator, ClassifierMixin):
 		return self
 
 	def get_params(self,deep=True):
-		raise NotImplementedError('This method has to be implemented in the derived class')
-
-
+		return {"learner":self.learner,
+				"generator":self.generator,
+				"verbose":self.verbose,
+				"multiclass_strategy":self.multiclass_strategy}
 
 
 

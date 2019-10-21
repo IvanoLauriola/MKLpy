@@ -15,12 +15,13 @@ from .AlternateMKL import AlternateMKL
 from .komd import KOMD
 from .EasyMKL import EasyMKL
 from .MEMO import MEMO
-#from HeuristicMKLClassifier import HeuristicMKLClassifier
+from .GRAM import GRAM
 
 __all__ = ['EasyMKL',
            'KOMD',
            'MKL',
            'AverageMKL',
            'AlternateMKL',
-           'MEMO'
+           'MEMO',
+           'GRAM'
            ]

@@ -22,29 +22,38 @@ class MEMO(AlternateMKL):
 
 
 	def __init__(self, learner=SVC(C=1000), generator=HPK_generator(n=10), multiclass_strategy='ova', verbose=False,
-				theta=0.0, max_iter=1000, learning_rate=0.01, tolerance=1e-6, decay=0.8, callbacks=[]):
-		super().__init__(learner=learner, generator=generator, multiclass_strategy=multiclass_strategy, func_form=summation,
-				max_iter=max_iter, learning_rate=learning_rate, tolerance=tolerance, decay=decay, verbose=verbose, callbacks=callbacks)
+				theta=0.0, max_iter=1000, learning_rate=0.01, callbacks=[]):
+		super().__init__(learner=learner, generator=generator, multiclass_strategy=multiclass_strategy,	
+			max_iter=max_iter, verbose=verbose, callbacks=callbacks)
 		self.theta = theta
-		self.direction = 'max'
+		self.func_form = summation
+		print ('warning: MEMO needs refactoring and parameters chehck, please contact the author if you want to use MEMO')
+
+	def get_params(self, deep=True):
+		new_params = {'theta': self.theta}
+		params = super().get_params()
+		params.update(new_params)
+		return params
 
 
 
 	def initialize_optimization(self):
 		Q = np.array([[np.dot(self.KL[r].ravel(),self.KL[s].ravel()) for r in range(self.n_kernels)] for s in range(self.n_kernels)])
 		Q /= np.sum([frobenius(K)**2 for K in self.KL])
-		#Q /= Q.mean()
-		#Q /= len(self.Y)
-		self.context = 	{
-							'Q'		: Q,
-							'YY'	: spdiag([1 if y==self.Y[0] else -1 for y in self.Y])
-						}
-		self.context['gamma'] = opt_margin(average(self.KL), self.context['YY'], None)[1]
-		return np.ones(self.n_kernels)/self.n_kernels
+
+		context = 	{
+				'Q'		: Q,
+				'YY'	: spdiag([1 if y==self.Y[0] else -1 for y in self.Y])
+			}
+		incumbent_solution = {'gamma': opt_margin(average(self.KL), context['YY'], None)[2]}
+		weights = np.ones(self.n_kernels)/self.n_kernels
+		ker_matrix = self.func_form(self.KL, weights)
+		obj = np.inf
+		return obj, incumbent_solution, weights, ker_matrix, context
 
 
-	def do_step(self, lr, sol, w, obj):
-		Kc = self.func_form(self.KL, w)
+	def do_step(self):
+		Kc = self.ker_matrix
 		YY = self.context['YY']
 		Q  = self.context['Q' ]
 		'''
@@ -66,23 +75,23 @@ class MEMO(AlternateMKL):
 
 		return _obj, _w, _sol
 		'''
-		_gamma = self.context['gamma']
+		w = self.weights[:]
+		_gamma = self.incumbent_solution['gamma']['x']
 		grad = np.array([(self.theta * np.dot(Q[r],w) + (_gamma.T * YY * matrix(self.KL[r]) * YY * _gamma)[0]) \
 				* w[r] * (1 - w[r]) 	for r in range(self.n_kernels)])
-		_beta = np.log(w) + lr * grad
-		print (_beta)
+		_beta = np.log(w) + self.learning_rate * grad
 		_w = np.exp(_beta)
 		_w /= sum(_w)
-		print (_beta,_w)
-		_margin, _gamma, _sol = opt_margin(Kc, YY, sol)
+		_margin, _gamma, _sol = opt_margin(Kc, YY, _gamma)
+
+		ker_matrix = self.func_form(self.KL, _w)
 		if _margin < 1e-4:
-			print('margin')
-			return None
+			return self.obj, self.incumbent_solution, self.weights, self.ker_matrix
 
 		_comp = np.dot(_w,np.dot(_w,Q))
 		_obj = _margin + (self.theta/2) * _comp
-		self.context['gamma'] = _gamma
-		return _obj, _w, _sol
+		incumbent_solution = {'gamma': _sol}
+		return _obj, incumbent_solution, _w, ker_matrix
 
 
 def opt_margin(K,YY,init_sol=None):

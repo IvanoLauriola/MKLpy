@@ -19,100 +19,77 @@ import numpy as np
 
 class AlternateMKL(MKL):
 
-	
-	max_iter 	= None
-	lr 			= None
-	tolerance 	= None
-	decay 		= None
-	direction	= None
-
 
 	def __init__(self, learner=SVC(C=1000), generator=HPK_generator(n=10), multiclass_strategy='ova', verbose=False,
-				 max_iter=1000, learning_rate=0.1, tolerance=1e-6, decay=0.8, func_form=summation, callbacks=[]):
-		super().__init__(learner=learner, generator=generator, multiclass_strategy=multiclass_strategy, func_form=func_form, verbose=verbose)
+				 max_iter=1000, learning_rate=0.01, callbacks=[]):
+		super().__init__(learner=learner, generator=generator, multiclass_strategy=multiclass_strategy, verbose=verbose)
 		self.max_iter 		= max_iter
 		self.learning_rate	= learning_rate
-		self.tolerance		= tolerance
-		self.decay			= decay
 		self.callbacks		= callbacks
 
-		# these values should be implemented in the derived classes
-		self.direction		= None
+
+	def get_params(self, deep=True):
+		# this estimator has parameters:
+		new_params = {'max_iter' : self.max_iter,
+					  'learning_rate': self.learning_rate,
+					  'callbacks': self.callbacks}
+		params = super().get_params()
+		params.update(new_params)
+		return params
+
 
 
 	@classmethod
 	def initialize_optimization(self):
-		''' this method initialize the initial context and data structures for the optimization,
-			and it returns the initial weights vector'''
+		''' this method initialize the initial context, data structures for the optimization,
+			and the initial weights vector'''
 		raise NotImplementedError('This method has to be implemented in the derived class')
+		
 
 	@classmethod
-	def do_step(self, lr, sol, w, obj):
-		'''this method computes an optimization step'''
+	def do_step(self, sol):
+		'''this method computes an optimization step. Sol is the incumbent solution'''
 		raise NotImplementedError('This method has to be implemented in the derived class')
 
 
 	def _combine_kernels(self):
+
+		# initialize optimization problem and weights
+		initial_result = self.initialize_optimization()
+		self.obj, self.incumbent_solution, self.weights, self.ker_matrix, self.context = initial_result
+
+		self.is_fitted = True
+
 		# initialize callbacks
 		for callback in self.callbacks:
-			callback.on_train_begin()
-
-		# initialize optimization parameters
-		obj_values	= []	# values of the obj function
-		stop_cond	= False
-		step 		= 0		# current iteration
-		lr 			= self.learning_rate
-		
-		obj 		= None  # current objective function
-		sol			= None	# current solution, useful for reoptimization
-		# initialize optimization problem
-		w = self.initialize_optimization()
+			callback.on_train_begin(self)
 
 		##########################
 		# MAIN OPTIMIZATION LOOP #
 		##########################
-		while not stop_cond:
-			step += 1
+		for step in range(1, self.max_iter + 1):
+
 			# callbacks on_step_begin
 			for callback in self.callbacks:
 				callback.on_step_begin(step)
 
-			new_solution = self.do_step(lr, sol, w, obj)
-			if not new_solution:
+			_obj, _sol, _weights, _ker_matrix = self.do_step()
+			if _obj == self.obj:
 				break
-			else:
-				_obj, _w, _sol = new_solution
 
-			improv = np.inf if not obj else obj - _obj if self.direction == 'min' else _obj - obj
-			if 	improv > 0:		# correct optimization case	
-				obj_values.append(_obj)
-				# update the incumbent solution
-				obj = _obj
-				sol = _sol
-				w   = _w
-			else:				# worsening of the objective function
-				# withdraw the current solution and reduce the learning date
-				lr *= self.decay
+			self.obj                = _obj
+			self.incumbent_solution = _sol
+			self.weights            = _weights
+			self.ker_matrix         = _ker_matrix
 
-			# check the stop conditions
-			stop_step   = step > 4
-			stop_improv = 0 < improv < self.tolerance
-			stop_lr     = lr < 1e-7
-			stop_steps  = step >= self.max_iter
-			stop_cond = stop_step and (stop_improv or stop_lr or stop_steps)
 
-			print ('+' if improv > 0 else '-', obj, improv, np.dot(w,w), lr)
 			# callbacks on_step_end
 			for callback in self.callbacks:
 				callback.on_step_end(step)
-
 		##########################
 		# STOP OPTIMIZATION LOOP #
 		##########################
 
-		self.obj_values	= obj_values
-		self.steps 		= step
-		self.weights 	= w
 		self.ker_matrix = self.func_form(self.KL,self.weights)
 
 		# callbacks optimization end

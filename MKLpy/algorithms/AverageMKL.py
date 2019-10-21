@@ -19,8 +19,9 @@ import numpy as np
 class AverageMKL(MKL):
 
 	def __init__(self, learner=SVC(C=1000), generator=HPK_generator(n=10), multiclass_strategy='ova', verbose=False):
-		super(self.__class__, self).__init__(learner=learner, generator=generator, multiclass_strategy=multiclass_strategy, func_form=average, verbose=verbose)
+		super(self.__class__, self).__init__(learner=learner, generator=generator, multiclass_strategy=multiclass_strategy, verbose=verbose)
 		#set other params
+		self.func_form = average
 
 
 	def _combine_kernels(self):
@@ -29,7 +30,5 @@ class AverageMKL(MKL):
 		return self.ker_matrix
 
 	def get_params(self, deep=True):
-		return {"learner":self.learner,
-				"generator":self.generator,
-				"verbose":self.verbose,
-				"multiclass_strategy":self.multiclass_strategy}
+		# no further parameters are introduced in AverageMKL
+		return super(AverageMKL, self).get_params()

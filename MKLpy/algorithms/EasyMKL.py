@@ -36,8 +36,10 @@ class EasyMKL(MKL):
         Paper @ http://www.math.unipd.it/~mdonini/publications.html
     '''
     def __init__(self, learner=KOMD(lam=0.1), lam=0.1, generator=HPK_generator(n=10), multiclass_strategy='ova', verbose=False):
-        super(self.__class__, self).__init__(learner=learner, generator=generator, multiclass_strategy=multiclass_strategy, func_form=summation, verbose=verbose)
+        super(self.__class__, self).__init__(learner=learner, generator=generator, multiclass_strategy=multiclass_strategy, verbose=verbose)
+        self.func_form = summation
         self.lam = lam
+
 
         
     def _combine_kernels(self):
@@ -76,6 +78,7 @@ class EasyMKL(MKL):
  
     def get_params(self, deep=True):
         # this estimator has parameters:
-        return {"lam": self.lam,
-                "verbose":self.verbose, "multiclass_strategy":self.multiclass_strategy,
-                'learner':self.learner}
+        new_params = {'lam': self.lam}
+        params = super().get_params()
+        params.update(new_params)
+        return params
