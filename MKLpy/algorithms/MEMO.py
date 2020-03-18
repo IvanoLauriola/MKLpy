@@ -11,7 +11,6 @@ This file is distributed with the GNU General Public License v3 <http://www.gnu.
 
 from .AlternateMKL import AlternateMKL
 from ..arrange import average, summation
-from ..lists.generator import HPK_generator
 from ..metrics import frobenius
 from sklearn.svm import SVC
 import numpy as np
@@ -21,7 +20,7 @@ from cvxopt import spdiag,matrix,solvers
 class MEMO(AlternateMKL):
 
 
-	def __init__(self, learner=SVC(C=1000), generator=HPK_generator(n=10), multiclass_strategy='ova', verbose=False,
+	def __init__(self, learner=SVC(C=1000), multiclass_strategy='ova', verbose=False,
 				theta=0.0, max_iter=1000, learning_rate=0.01, callbacks=[]):
 		super().__init__(learner=learner, generator=generator, multiclass_strategy=multiclass_strategy,	
 			max_iter=max_iter, verbose=verbose, callbacks=callbacks)

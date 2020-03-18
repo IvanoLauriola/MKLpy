@@ -16,7 +16,8 @@ assign a value to each kernel in list using the radius of MEB, or the margin.
 
 import numpy as np
 from cvxopt import matrix,solvers,spdiag
-from MKLpy.utils.validation import check_squared, check_K_Y
+from ..utils.validation import check_squared, check_K_Y
+from ..utils.misc import to_diagonal
 
 def radius(K):
     """evaluate the radius of the MEB (Minimum Enclosing Ball) of examples in
@@ -32,7 +33,7 @@ def radius(K):
     r : np.float64,
         the radius of the minimum enclosing ball of examples in feature space.
     """
-    check_squared(K)
+    K = check_squared(K).astype(np.double)
     n = K.shape[0]
     P = 2 * matrix(K)
     p = -matrix([K[i,i] for i in range(n)])
@@ -58,7 +59,7 @@ def margin(K,Y):
     Y : (n) array_like,
         the labels vector.
     """
-    K, Y = check_K_Y(K,Y,binary=True)
+    K, Y = check_K_Y(K, Y, binary=True)
     n = Y.shape[0]
     Y = [1 if y==Y[0] else -1 for y in Y]
     YY = spdiag(Y)
@@ -90,12 +91,11 @@ def ratio(K,Y):
     v : np.float64,
         the value of the ratio
     """
-    K, Y = check_K_Y(K,Y)
-    n = len(Y)
+    K, Y = check_K_Y(K, Y, binary=True)
     r2 = radius(K)**2
-    m2 = (margin(K,Y)*1)**2
-    return (r2/m2)/n
-    return ((radius(K)**2)/(margin(K,Y)**2))/n
+    m2 = margin(K,Y)**2
+    return (r2/m2)/len(Y)
+    #return ((radius(K)**2)/(margin(K,Y)**2))/n
 
 
 def trace(K):
@@ -111,7 +111,7 @@ def trace(K):
     t : np.float64,
         the trace of *K*
     """
-    check_squared(K)
+    K = check_squared(K)
     return sum([K[i,i] for i in range(K.shape[0])])
 
 def frobenius(K):
@@ -127,8 +127,8 @@ def frobenius(K):
     t : np.float64,
         the frobenius-norm of *K*
     """
-    check_squared(K)
-    return np.sqrt(np.sum(K**2))
+    K = check_squared(K)
+    return (K**2).sum()**.5
 
 def spectral_ratio(K,norm=True):
     """return the spectral ratio of the kernel as input.
@@ -145,7 +145,7 @@ def spectral_ratio(K,norm=True):
     t : np.float64,
         the spectral ratio of *K*, normalized iif *norm=True*
     """
-    check_squared(K)
+    K = check_squared(K)
     n = K.shape[0]
     c = trace(K)/frobenius(K)
     return (c-1)/(np.sqrt(n)-1) if norm else c

@@ -12,8 +12,8 @@ This module contains function that perform a transformation over kernels and sam
 """
 
 import numpy as np
-from MKLpy.metrics import trace
-from MKLpy.utils.validation import check_squared, check_X
+from ..metrics import trace
+from ..utils.validation import check_squared, check_X
 
 
 

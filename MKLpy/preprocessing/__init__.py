@@ -9,6 +9,5 @@ __all__ = ['kernel_normalization',
            'rescale',
            'rescale_01',
            'centering',
-           'binarization'
            ]
 

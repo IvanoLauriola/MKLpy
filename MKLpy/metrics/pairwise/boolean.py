@@ -15,25 +15,23 @@ This module contains all boolean kernel functions of MKLpy
 import numpy as np
 from scipy.special import binom
 from scipy.sparse import issparse
-from MKLpy.utils.validation import check_X_T
-import types
+from sklearn.metrics.pairwise import check_pairwise_arrays
 
 
 
 #----------BOOLEAN KERNELS----------
 
-def monotone_conjunctive_kernel(X,T=None,c=2):
-    X, T = check_X_T(X, T)
-    L = np.dot(X,T.T)
+def monotone_conjunctive_kernel(X,Z=None,c=2):
+    L = linear_kernel(X,Z)
     return binom(L,c)
 
-def monotone_disjunctive_kernel(X,T=None,d=2):
-    X, T = check_X_T(X, T)
-    L = np.dot(X,T.T)
+
+def monotone_disjunctive_kernel(X,Z=None,d=2):
+    L = linear_kernel(X,Z)
     n = X.shape[1]
 
-    XX = np.dot(X.sum(axis=1).reshape(X.shape[0],1), np.ones((1,T.shape[0])))
-    TT = np.dot(T.sum(axis=1).reshape(T.shape[0],1), np.ones((1,X.shape[0])))
+    XX = np.dot(X.sum(axis=1).reshape(X.shape[0],1), np.ones((1,Z.shape[0])))
+    TT = np.dot(Z.sum(axis=1).reshape(Z.shape[0],1), np.ones((1,X.shape[0])))
     N_x = n - XX
     N_t = n - TT
     N_xz = N_x - TT.T + L
@@ -45,36 +43,35 @@ def monotone_disjunctive_kernel(X,T=None,d=2):
     return (N_d - N_x - N_t.T + N_xz)
 
 
-def monotone_dnf_kernel(X,T=None,d=2,c=2):
-    X, T = check_X_T(X, T)
+def monotone_dnf_kernel(X,Z=None,d=2,c=2):
+    X, Z = check_pairwise_arrays(X, Z)
     n = X.shape[1]
     n_c = binom(n,c)
-    XX = np.dot(X.sum(axis=1).reshape(X.shape[0],1), np.ones((1,T.shape[0])))
-    TT = np.dot(T.sum(axis=1).reshape(T.shape[0],1), np.ones((1,X.shape[0])))
+    XX = np.dot(X.sum(axis=1).reshape(X.shape[0],1), np.ones((1,Z.shape[0])))
+    ZZ = np.dot(T.sum(axis=1).reshape(Z.shape[0],1), np.ones((1,X.shape[0])))
     XXc = binom(XX,c)
-    TTc = binom(TT,c)
-    return binom(n_c,d) - binom(n_c - XXc, d) - binom(n_c - TTc.T, d) + binom(my_mdk(X,T,c),d)
+    ZZc = binom(ZZ,c)
+    return binom(n_c,d) - binom(n_c - XXc, d) - binom(n_c - ZZc.T, d) + binom(my_mdk(X,Z,c),d)
 
 
-def monotone_cnf_kernel(X,T=None,c=2,d=2):
+def monotone_cnf_kernel(X,Z=None,c=2,d=2):
     pass
 
-def conjunctive_kernel(X,T=None,c=2):
+def conjunctive_kernel(X,Z=None,c=2):
     pass
 
-def disjunctive_kernel(X,T=None,d=2):
+def disjunctive_kernel(X,Z=None,d=2):
     pass
 
-def dnf_kernel(X,T=None,d=2,c=2):
+def dnf_kernel(X,Z=None,d=2,c=2):
     pass
 
-def cnf_kernel(X,T=None,c=2,d=2):
+def cnf_kernel(X,Z=None,c=2,d=2):
     pass
 
-def tanimoto_kernel(X,T=None):#?
-    T = X if type(T) == types.NoneType else T
-    L = np.dot(X,T.T)
+def tanimoto_kernel(X,Z=None):#?
+    L = linear_kernel(X,Z)
     xx = np.linalg.norm(X,axis=1)
     tt = np.linalg.norm(T,axis=1)
-
+    pass
 

@@ -14,8 +14,7 @@ This module contains kernel functions for strings and sequences.
 import numpy as np
 from scipy.special import binom
 from scipy.sparse import issparse
-from MKLpy.utils.validation import check_X_T
-import types
+from sklearn.metrics.pairwise import check_pairwise_arrays
 import itertools
 
 
@@ -71,22 +70,22 @@ def dictionary_dot(EX, ET):
 
 
 
-def spectrum_kernel(X, T=None, p=2, binary=False):	
-	X, T = check_X_T(X, T)
+def spectrum_kernel(X, Z=None, p=2, binary=False):	
+	X, T = check_pairwise_arrays(X, Z)
 	EX = spectrum_embedding(X, p=p, binary=binary)
-	ET = spectrum_embedding(T, p=p, binary=binary)
-	return dictionary_dot(EX, ET)
+	EZ = spectrum_embedding(Z, p=p, binary=binary)
+	return dictionary_dot(EX, EZ)
 
 
-def fixed_length_subsequences_kernel(X, T=None, p=2, binary=False):
-	X, T = check_X_T(X, T)
+def fixed_length_subsequences_kernel(X, Z=None, p=2, binary=False):
+	X, Z = check_pairwise_arrays(X, Z)
 	EX = fixed_length_subsequences_embedding(X, p=p, binary=binary)
-	ET = fixed_length_subsequences_embedding(T, p=p, binary=binary)
-	return dictionary_dot(EX, ET)
+	EZ = fixed_length_subsequences_embedding(Z, p=p, binary=binary)
+	return dictionary_dot(EX, EZ)
 
 
 def all_subsequences_kernel(X, T=None, binary=False):
-	X, T = check_X_T(X, T)
+	X, Z = check_pairwise_arrays(X, Z)
 	EX = all_subsequences_embedding(X, binary=binary)
-	ET = all_subsequences_embedding(T, binary=binary)
-	return dictionary_dot(EX, ET)
+	EZ = all_subsequences_embedding(Z, binary=binary)
+	return dictionary_dot(EX, EZ)

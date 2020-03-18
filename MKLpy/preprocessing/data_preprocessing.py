@@ -12,8 +12,8 @@ This module contains function that perform a transformation over kernels and sam
 """
 
 import numpy as np
-from MKLpy.metrics import trace
-from MKLpy.utils.validation import check_squared, check_X
+from ..metrics import trace
+from sklearn.preprocessing import normalize
 
 def normalization(X):
     """normalize a samples matrix (n,m) .. math:: \|X_i\|^2 = 1 \forall i \in [1..n]
@@ -28,9 +28,7 @@ def normalization(X):
     Xn : (n,m) ndarray,
          the normalized version of *X*.
     """
-    #return np.array([x/np.linalg.norm(x) for x in X])
-    check_X(X)
-    return (X.T / np.linalg.norm(X,axis=1) ).T
+    return normalize(X, norm='l2', axis=1, return_norm=False)
 
 
 
@@ -91,6 +89,7 @@ def centering(X):
     Xc : (n,m) ndarray,
          the centered version of *X*.
     """
+    
     n = X.shape[0]
     uno = np.ones((n,1))
     Xm = 1.0/n * np.dot(uno.T,X)

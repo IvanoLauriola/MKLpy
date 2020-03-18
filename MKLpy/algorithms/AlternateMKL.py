@@ -11,7 +11,6 @@ This file is distributed with the GNU General Public License v3 <http://www.gnu.
 
 from .base import MKL
 from ..arrange import summation
-from ..lists.generator import HPK_generator
 from sklearn.svm import SVC
 import numpy as np
 
@@ -20,9 +19,9 @@ import numpy as np
 class AlternateMKL(MKL):
 
 
-	def __init__(self, learner=SVC(C=1000), generator=HPK_generator(n=10), multiclass_strategy='ova', verbose=False,
+	def __init__(self, learner=SVC(C=1000), multiclass_strategy='ova', verbose=False,
 				 max_iter=1000, learning_rate=0.01, callbacks=[]):
-		super().__init__(learner=learner, generator=generator, multiclass_strategy=multiclass_strategy, verbose=verbose)
+		super().__init__(learner=learner, multiclass_strategy=multiclass_strategy, verbose=verbose)
 		self.max_iter 		= max_iter
 		self.learning_rate	= learning_rate
 		self.callbacks		= callbacks

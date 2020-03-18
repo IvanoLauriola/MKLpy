@@ -4,7 +4,6 @@
 
 from .AlternateMKL import AlternateMKL
 from ..arrange import average, summation
-from ..lists.generator import HPK_generator
 from sklearn.svm import SVC 
 from cvxopt import matrix, spdiag, solvers
 import numpy as np
@@ -65,7 +64,7 @@ def opt_margin(K,YY,init_sol=None):
 
 class GRAM(AlternateMKL):
 
-    def __init__(self, learner=SVC(C=1000), generator=HPK_generator(n=10), multiclass_strategy='ova', verbose=False,
+    def __init__(self, learner=SVC(C=1000), multiclass_strategy='ova', verbose=False,
                 max_iter=1000, learning_rate=0.01, callbacks=[]):
         super().__init__(learner=learner, generator=generator, multiclass_strategy=multiclass_strategy, max_iter=max_iter, verbose=verbose, callbacks=callbacks)
         self.func_form = summation

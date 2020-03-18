@@ -12,8 +12,8 @@ This file is distributed with the GNU General Public License v3 <http://www.gnu.
 from sklearn.utils.multiclass import check_classification_targets
 from sklearn.base import BaseEstimator, ClassifierMixin
 from ..arrange import average, summation
-from ..lists.generator import HPK_generator
-from ..utils.validation import process_list, check_KL_Y
+from ..utils.validation import check_KL_Y
+from ..utils.exceptions import BinaryProblemError
 from ..multiclass import OneVsOneMKLClassifier, OneVsRestMKLClassifier
 import numpy as np
 
@@ -26,9 +26,8 @@ class MKL(BaseEstimator, ClassifierMixin):
 	KL 		   = None 	# the kernels list
 
 
-	def __init__(self, learner, generator, multiclass_strategy, verbose):
+	def __init__(self, learner, multiclass_strategy, verbose):
 		self.learner     = learner		# the base learner which uses the combined kernel
-		self.generator   = generator 	# a generator of kernel matrices
 		self.verbose     = verbose 		# logging strategy
 		self.multiclass_strategy = multiclass_strategy # multiclass pattern ('ovo' or 'ovr')
 
@@ -37,30 +36,28 @@ class MKL(BaseEstimator, ClassifierMixin):
 		self.classes_    = None
 		self.weights     = None
 		self.learner.kernel = 'precomputed'
+		assert multiclass_strategy in ['ovo', 'ovr', 'ova']
 
 
-	def _prepare(self,X,Y):
+	def _prepare(self, KL, Y):
 		'''preprocess data before training'''
 		check_classification_targets(Y)
 		self.classes_ = np.unique(Y)
-		if len(self.classes_) < 2:
-			# these algorithms are meant for classification only
+		if len(self.classes_) < 2:	# these algorithms are meant for classification only
 			raise ValueError("The number of classes has to be almost 2; got ", len(self.classes_))
 		self.multiclass_ = len(self.classes_) > 2
 
-		# generate the kernels
-		KL = process_list(X,self.generator)	
 		self.KL, self.Y = check_KL_Y(KL,Y)
 		self.n_kernels = len(self.KL)
 		return
 
-	def fit(self,X,Y):
-		'''complete fit with preprocess'''
-		self._prepare(X,Y)
 
-		if self.multiclass_ :
-			# a multiclass wrapper is used in case of multiclass target
-			metaClassifier = OneVsOneMKLClassifier if self.multiclass_strategy in ['ovo','OvO','1v1'] else OneVsRestMKLClassifier
+	def fit(self, KL, Y):
+		'''complete fit with preprocess'''
+		self._prepare(KL, Y)
+
+		if self.multiclass_ :	# a multiclass wrapper is used in case of multiclass target
+			metaClassifier = OneVsOneMKLClassifier if self.multiclass_strategy == 'ovo' else OneVsRestMKLClassifier
 			self.clf = metaClassifier(self.__class__(**self.get_params())).fit(self.KL,self.Y)
 			self.weights = self.clf.weights
 			self.ker_matrix = self.clf.ker_matrices
@@ -70,16 +67,18 @@ class MKL(BaseEstimator, ClassifierMixin):
 		self.is_fitted = True
 		return self
 
+
 	def _fit(self):
 		self.ker_matrix = self._combine_kernels()	# call combine_kernels without re-preprocess
-		self.learner.fit(self.ker_matrix,self.Y)					# fit model using the base learner
+		self.learner.fit(self.ker_matrix,self.Y)	# fit the base learner
 		return
 
-	def combine_kernels(self,X,Y=None):
+
+	def combine_kernels(self, KL, Y=None):
 		'''only kernels combination, with preprocess'''
-		self._prepare(X,Y)
+		self._prepare( KL, Y)
 		if self.multiclass_:
-			raise ValueError("combine_kernels requires binary classification problems")
+			raise BinaryProblemError("combine_kernels requires binary classification problems")
 		return self._combine_kernels()
 
 
@@ -89,19 +88,17 @@ class MKL(BaseEstimator, ClassifierMixin):
 
 
 
-	def predict(self,X):
+	def predict(self, KL):
 		if not self.is_fitted :
 			raise NotFittedError("The base learner is not fitted yet. Call 'fit' with appropriate arguments before using this method.")
-		KL = process_list(X,self.generator)
 		return self.clf.predict(KL) if self.multiclass_ else self.learner.predict(self.func_form(KL,self.weights))
 		
 
-	def decision_function(self,X):
+	def decision_function(self, KL):
 		if self.is_fitted == False:
 			raise NotFittedError("The base learner is not fitted yet. Call 'fit' with appropriate arguments before using this method.")
 		if self.multiclass_:
 			raise ValueError('Scores are not available for multiclass problems, use predict')
-		KL = process_list(X,self.generator)				# X can be a samples matrix or Kernel List
 		return self.learner.decision_function(self.func_form(KL,self.weights))
 
 
@@ -113,7 +110,6 @@ class MKL(BaseEstimator, ClassifierMixin):
 
 	def get_params(self,deep=True):
 		return {"learner":self.learner,
-				"generator":self.generator,
 				"verbose":self.verbose,
 				"multiclass_strategy":self.multiclass_strategy}
 
