@@ -2,19 +2,22 @@
 """
 """
 
-from .AlternateMKL import AlternateMKL
+from .AlternateMKL import AlternateMKL, Cache
+from .base import Solution
 from ..arrange import average, summation
+from ..utils.misc import uniform_vector
 from sklearn.svm import SVC 
 from cvxopt import matrix, spdiag, solvers
 import numpy as np
 import time,sys 
+from ..metrics import ratio
 
 
 
-def radius(K,lam=0,init_sol=None): 
+def opt_radius(K, init_sol=None): 
     n = K.shape[0]
     K = matrix(K)
-    P = 2 * ( (1-lam) * K + spdiag([lam]*n) )
+    P = 2 * K
     p = -matrix([K[i,i] for i in range(n)])
     G = -spdiag([1.0] * n)
     h = matrix([0.0] * n)
@@ -26,24 +29,7 @@ def radius(K,lam=0,init_sol=None):
     return sol, radius2
 
 
-def margin(K,Y,lam=0,init_sol=None):
-    n = len(Y)
-    YY = spdiag(list(Y))
-    K = matrix(K)
-    lambdaDiag = spdiag([lam]*n)
-    P = 2*( (1-lam) * (YY*K*YY) + lambdaDiag )
-    p = matrix([0.0]*n)
-    G = -spdiag([1.0]*n)
-    h = matrix([0.0]*n)
-    A = matrix([[1.0 if Y[i]==+1 else 0 for i in range(n)],
-                [1.0 if Y[j]==-1 else 0 for j in range(n)]]).T
-    b = matrix([[1.0],[1.0]],(2,1))
-    solvers.options['show_progress']=False
-    sol = solvers.qp(P,p,G,h,A,b,initvals=init_sol)
-    margin2 = sol['dual objective'] - (sol['x'].T * lambdaDiag * sol['x'])[0]
-    return sol,margin2
-
-def opt_margin(K,YY,init_sol=None):
+def opt_margin(K, YY, init_sol=None):
     '''optimized margin evaluation'''
     n = K.shape[0]
     P = 2 * (YY * matrix(K) * YY)
@@ -65,8 +51,11 @@ def opt_margin(K,YY,init_sol=None):
 class GRAM(AlternateMKL):
 
     def __init__(self, learner=SVC(C=1000), multiclass_strategy='ova', verbose=False,
-                max_iter=1000, learning_rate=0.01, callbacks=[]):
-        super().__init__(learner=learner, generator=generator, multiclass_strategy=multiclass_strategy, max_iter=max_iter, verbose=verbose, callbacks=callbacks)
+                max_iter=1000, learning_rate=0.01, callbacks=[], scheduler=None):
+        super().__init__(
+            learner=learner, multiclass_strategy=multiclass_strategy, 
+            max_iter=max_iter, verbose=verbose, callbacks=callbacks,
+            scheduler=scheduler, direction='min', learning_rate=learning_rate)
         self.func_form = summation
 
 
@@ -75,56 +64,73 @@ class GRAM(AlternateMKL):
 
 
     def initialize_optimization(self):
-        context = {'YY' : spdiag([1 if y==self.Y[0] else -1 for y in self.Y])}
-        weights = np.ones(self.n_kernels)/self.n_kernels
-        ker_matrix = self.func_form(self.KL, weights)
+        YY          = spdiag([1 if y==self.Y[0] else -1 for y in self.Y])
+        weights     = uniform_vector(self.n_kernels)
+        ker_matrix  = self.func_form(self.KL, weights)
+        alpha,r2    = opt_radius(ker_matrix)
+        gamma,m2    = opt_margin(ker_matrix, YY)
+        obj         = (r2 / m2) / len(self.Y)
 
-        alpha,r2 = radius(ker_matrix)
-        gamma,m2 = opt_margin(ker_matrix, context['YY'])
-        incumbent_solution = { 'gamma': gamma,
-                               'alpha': alpha}
-        obj = (r2 / m2) / len(self.Y)
+        #caching
+        self.cache.YY = YY
+        self.cache.alpha = alpha
+        self.cache.gamma = gamma
 
-        return obj, incumbent_solution, weights, ker_matrix, context
+        return Solution(
+            weights=weights, 
+            objective=obj,
+            ker_matrix=ker_matrix,
+            )
 
         
 
 
     def do_step(self):
 
-        YY = self.context['YY']
+        YY    = self.cache.YY
+        alpha = self.cache.alpha
+        gamma = self.cache.gamma
 
-        alpha = self.incumbent_solution['alpha']
-        gamma = self.incumbent_solution['gamma']
-
-        beta = np.log(self.weights)
-        beta = self._update_grad(self.ker_matrix, YY, beta, alpha, gamma)
+        beta = np.log(self.solution.weights)
+        beta = self._update_grad(self.solution.ker_matrix, YY, beta, alpha, gamma)
 
         w = np.exp(beta)
         w /= sum(w)
         ker_matrix = self.func_form(self.KL, w)
         try :
-            new_alpha,r2 = radius(ker_matrix       ,init_sol=context['alpha'].copy())
-            new_gamma,m2 = opt_margin(ker_matrix,YY,init_sol=context['gamma'].copy())
+            #raise Exception
+            new_alpha,r2 = opt_radius(ker_matrix       ,init_sol=alpha)
+            new_gamma,m2 = opt_margin(ker_matrix,YY,init_sol=gamma)
         except :
-            new_alpha,r2 = radius(ker_matrix   )
+            new_alpha,r2 = opt_radius(ker_matrix   )
             new_gamma,m2 = opt_margin(ker_matrix,YY)
         obj = (r2 / m2) / len(self.Y)
-        incumbent_solution = {'alpha': new_alpha, 'gamma': new_gamma}
 
-        return obj, incumbent_solution, w, ker_matrix
+        self.cache.alpha = new_alpha
+        self.cache.gamma = new_gamma
+
+        ker_matrix = self.func_form(self.KL, w)
+        return Solution(
+            weights=w,
+            objective=obj,
+            ker_matrix=ker_matrix
+            )
 
         
 
     def _update_grad(self,Kc, YY, beta, alpha, gamma):
+        n = self.n_kernels
         
-        eb = np.exp(np.array(beta))
-
-        a = np.array([1.0-(alpha['x'].T*matrix(K)*alpha['x'])[0] for K in self.KL])
-        b = np.array([(gamma['x'].T*YY*matrix(K)*YY*gamma['x'])[0] for K in self.KL])            
-        den = [np.dot(eb,b)**2]*self.n_kernels
-        num = [eb[r] * (a[r]*np.dot(eb,b)   -   b[r]*np.dot(eb,a)) for r in range(self.n_kernels)]
+        eb = np.exp(beta)
+        a,b = [], []
+        gammaY = gamma['x'].T*YY
+        for K in self.KL:   #optimized for generators
+            K = matrix(K)
+            a.append( 1.-(alpha['x'].T*matrix(K)*alpha['x'])[0] )
+            b.append( (gammaY*matrix(K)*gammaY.T)[0] )
+        ebb, eba = np.dot(eb,b), np.dot(eb,a)
+        den = np.dot(eb,b)**2
+        num = [eb[r] * (a[r]*ebb - b[r]*eba) for r in range(n)]
         
-        new_beta = np.array([beta[k] - self.learning_rate * (num[k]/den[k]) for k in range(self.n_kernels)])
-        new_beta = new_beta - new_beta.max()
+        new_beta = np.array([beta[k] - self.learning_rate * (num[k]/den) for k in range(n)])
         return new_beta

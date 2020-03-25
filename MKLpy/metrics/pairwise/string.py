@@ -16,11 +16,15 @@ from scipy.special import binom
 from scipy.sparse import issparse
 from sklearn.metrics.pairwise import check_pairwise_arrays
 import itertools
+from multiprocessing import Pool, cpu_count
+import joblib
+from threading import Thread
+from sklearn.utils import parallel_backend as pb
 
 
 
 
-def spectrum_embedding(X, p=2, binary=False):
+def spectrum_embedding(x, p=2, binary=False):
 	'''
 	Computes the spectrum embedding of a seuqnce.
 	The feature space contains the number of occurrences of all possible substrings
@@ -28,64 +32,56 @@ def spectrum_embedding(X, p=2, binary=False):
 	p: the length of substructures
 	binary: counts of occurrences or 1/0
 	'''
-	S = []
-	for x in X:
-		vx = {}
-		for i in range(len(x)-p+1):
-			u = x[i:i+p]
-			vx[u] = 1 if u not in vx or binary else vx[u] + 1
-		S.append(vx)
-	return S
+	vx = {}
+	for i in range(len(x)-p+1):
+		u = x[i:i+p]
+		vx[u] = 1 if u not in vx or binary else vx[u] + 1
+	return vx
 
 
+def fixed_length_subsequences_embedding(x, p=2, binary=False):
+	vx = {}
+	for u in itertools.combinations(x,p):
+		vx[u] = 1 if u not in vx or binary else vx[u] + 1
+	return vx
 
-def fixed_length_subsequences_embedding(X, p=2, binary=False):
-	S = []
-	for x in X:
-		vx = {}
+
+def all_subsequences_embedding(x, binary=False):
+	vx = {():1}
+	for p in range(1, len(x)+1):
 		for u in itertools.combinations(x,p):
 			vx[u] = 1 if u not in vx or binary else vx[u] + 1
-		S.append(vx)
-	return S
+	return vx
 
-
-def all_subsequences_embedding(X, binary=False):
-	S = []
-	for x in X:
-		vx = {():1}
-		for p in range(1, len(x)+1):
-			for u in itertools.combinations(x,p):
-				vx[u] = 1 if u not in vx or binary else vx[u] + 1
-		S.append(vx)
-	return S
-
-
-
-def dictionary_dot(EX, ET):
-	K = np.zeros((len(ET), len(EX)))
-	for it, vt in enumerate(ET):
-		for ix, vx in enumerate(EX):
-			K[it,ix] = sum( vx[f]*vt[f] for f in vt.keys() & vx.keys() )
-	return K
 
 
 
 def spectrum_kernel(X, Z=None, p=2, binary=False):	
-	X, T = check_pairwise_arrays(X, Z)
-	EX = spectrum_embedding(X, p=p, binary=binary)
-	EZ = spectrum_embedding(Z, p=p, binary=binary)
-	return dictionary_dot(EX, EZ)
+	embedding = lambda s : spectrum_embedding(s, p=p, binary=binary)
+	return string_kernel(embedding, X=X, Z=Z, workers=workers)
 
 
 def fixed_length_subsequences_kernel(X, Z=None, p=2, binary=False):
-	X, Z = check_pairwise_arrays(X, Z)
-	EX = fixed_length_subsequences_embedding(X, p=p, binary=binary)
-	EZ = fixed_length_subsequences_embedding(Z, p=p, binary=binary)
-	return dictionary_dot(EX, EZ)
-
+	embedding = lambda s : fixed_length_embedding(s, p=p, binary=binary)
+	return string_kernel(embedding, X=X, Z=Z, workers=workers)
+	
 
 def all_subsequences_kernel(X, T=None, binary=False):
-	X, Z = check_pairwise_arrays(X, Z)
-	EX = all_subsequences_embedding(X, binary=binary)
-	EZ = all_subsequences_embedding(Z, binary=binary)
+	embedding = lambda s : all_subsequence_embedding(s, binary=binary)
+	return string_kernel(embedding, X=X, Z=Z, workers=workers)
+
+
+
+
+def string_kernel(embedding, X, Z=None):
+	EX = [embedding(s) for s in X]
+	EZ = EX if (Z is None) or (Z is X) else [embedding(s) for s in Z]
 	return dictionary_dot(EX, EZ)
+
+
+def dictionary_dot(EX, EZ):
+	K = np.zeros((len(EX), len(EZ)))
+	for iz, vz in enumerate(EZ):
+		for ix, vx in enumerate(EX):
+			K[ix,iz] = sum( vx[f]*vz[f] for f in vz.keys() & vx.keys() )
+	return K

@@ -9,7 +9,7 @@ This file is distributed with the GNU General Public License v3 <http://www.gnu.
 
 """
 
-from .base import MKL
+from .base import MKL, Solution
 from ..arrange import average
 from ..utils.misc import uniform_vector
 from sklearn.svm import SVC
@@ -25,9 +25,13 @@ class AverageMKL(MKL):
 
 
 	def _combine_kernels(self):
-		self.weights = uniform_vector(self.n_kernels)	# weights vector is a np.ndarray
-		self.ker_matrix = self.func_form(self.KL,self.weights)			# combine kernels
-		return self.ker_matrix
+		w = uniform_vector(self.n_kernels)
+		return Solution(
+			weights		= w,
+			objective	= None,
+			ker_matrix	= self.func_form(self.KL, w),
+			)
+
 
 	def get_params(self, deep=True):
 		# no further parameters are introduced in AverageMKL

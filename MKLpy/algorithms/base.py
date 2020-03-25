@@ -17,13 +17,21 @@ from ..utils.exceptions import BinaryProblemError
 from ..multiclass import OneVsOneMKLClassifier, OneVsRestMKLClassifier
 import numpy as np
 
+
+class Solution():
+	def __init__(self, weights, objective, ker_matrix, **kwargs):
+		self.weights 	= weights
+		self.objective 	= objective
+		self.ker_matrix = ker_matrix
+		self.__dict__.update(kwargs)
+
+
 class MKL(BaseEstimator, ClassifierMixin):
 
 	func_form  = None   # a function which taskes a list of kernels and their weights and returns the combination
-	ker_matrix = None   # the obtained kernel matrix
-	weights    = None   # the weights used in combination
 	n_kernels  = None   # the number of kernels used in combination
 	KL 		   = None 	# the kernels list
+	solution   = None 	# solution of the algorithm
 
 
 	def __init__(self, learner, multiclass_strategy, verbose):
@@ -34,7 +42,6 @@ class MKL(BaseEstimator, ClassifierMixin):
 		self.is_fitted   = False
 		self.multiclass_ = None
 		self.classes_    = None
-		self.weights     = None
 		self.learner.kernel = 'precomputed'
 		assert multiclass_strategy in ['ovo', 'ovr', 'ova']
 
@@ -59,18 +66,16 @@ class MKL(BaseEstimator, ClassifierMixin):
 		if self.multiclass_ :	# a multiclass wrapper is used in case of multiclass target
 			metaClassifier = OneVsOneMKLClassifier if self.multiclass_strategy == 'ovo' else OneVsRestMKLClassifier
 			self.clf = metaClassifier(self.__class__(**self.get_params())).fit(self.KL,self.Y)
-			self.weights = self.clf.weights
-			self.ker_matrix = self.clf.ker_matrices
+			self.solution = self.clf.solution
 		else :
 			self._fit()					# fit the model
-
 		self.is_fitted = True
 		return self
 
 
 	def _fit(self):
-		self.ker_matrix = self._combine_kernels()	# call combine_kernels without re-preprocess
-		self.learner.fit(self.ker_matrix,self.Y)	# fit the base learner
+		self.solution = self._combine_kernels()	# call combine_kernels without re-preprocess
+		self.learner.fit(self.solution.ker_matrix,self.Y)	# fit the base learner
 		return
 
 
@@ -79,7 +84,8 @@ class MKL(BaseEstimator, ClassifierMixin):
 		self._prepare( KL, Y)
 		if self.multiclass_:
 			raise BinaryProblemError("combine_kernels requires binary classification problems")
-		return self._combine_kernels()
+		self.solution = self._combine_kernels()
+		return solution.ker_matrix
 
 
 	def _combine_kernels(self):
@@ -91,7 +97,7 @@ class MKL(BaseEstimator, ClassifierMixin):
 	def predict(self, KL):
 		if not self.is_fitted :
 			raise NotFittedError("The base learner is not fitted yet. Call 'fit' with appropriate arguments before using this method.")
-		return self.clf.predict(KL) if self.multiclass_ else self.learner.predict(self.func_form(KL,self.weights))
+		return self.clf.predict(KL) if self.multiclass_ else self.learner.predict(self.func_form(KL,self.solution.weights))
 		
 
 	def decision_function(self, KL):
@@ -99,7 +105,7 @@ class MKL(BaseEstimator, ClassifierMixin):
 			raise NotFittedError("The base learner is not fitted yet. Call 'fit' with appropriate arguments before using this method.")
 		if self.multiclass_:
 			raise ValueError('Scores are not available for multiclass problems, use predict')
-		return self.learner.decision_function(self.func_form(KL,self.weights))
+		return self.learner.decision_function(self.func_form(KL,self.solution.weights))
 
 
 

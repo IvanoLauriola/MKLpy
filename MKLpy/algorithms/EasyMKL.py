@@ -12,7 +12,7 @@ This file is distributed with the GNU General Public License v3 <http://www.gnu.
 Paper @ http://www.math.unipd.it/~mdonini/publications.html
 """
 
-from .base import MKL
+from .base import MKL, Solution
 from .komd import KOMD
 from ..multiclass import OneVsOneMKLClassifier as ovoMKL, OneVsRestMKLClassifier as ovaMKL
 from ..arrange import summation
@@ -35,7 +35,7 @@ class EasyMKL(MKL):
         Paper @ http://www.math.unipd.it/~mdonini/publications.html
     '''
     def __init__(self, learner=KOMD(lam=0.1), lam=0.1, multiclass_strategy='ova', verbose=False):
-        super(self.__class__, self).__init__(learner=learner, multiclass_strategy=multiclass_strategy, verbose=verbose)
+        super().__init__(learner=learner, multiclass_strategy=multiclass_strategy, verbose=verbose)
         self.func_form = summation
         self.lam = lam
 
@@ -66,14 +66,17 @@ class EasyMKL(MKL):
         weights = [(yg*matrix(K)*yg.T)[0] for K in self.KL]
          
         norm2 = sum([w for w in weights])
-        self.weights = np.array([w / norm2 for w in weights])
-        self.ker_matrix = self.func_form(self.KL, self.weights)
-        return self.ker_matrix
+        
+        weights = np.array([w / norm2 for w in weights])
+        ker_matrix = self.func_form(self.KL, weights)
+        return Solution(
+            weights=weights,
+            objective=None,
+            ker_matrix=ker_matrix,
+            )
 
  
     def get_params(self, deep=True):
         # this estimator has parameters:
         new_params = {'lam': self.lam}
-        params = super().get_params()
-        params.update(new_params)
-        return params
+        return super().get_params().update(new_params)

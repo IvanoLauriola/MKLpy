@@ -11,6 +11,7 @@ from sklearn.metrics.pairwise import linear_kernel, polynomial_kernel
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
 from MKLpy import preprocessing
+from MKLpy import callbacks
 from MKLpy import metrics
 from MKLpy.metrics import pairwise
 from MKLpy import algorithms
@@ -179,7 +180,7 @@ class TestMKL(unittest.TestCase):
 
 	def setUp(self):
 		data = load_breast_cancer()
-		self.Xtr, self.Xte, self.Ytr, self.Yte = train_test_split(data.data, data.target, shuffle=True, train_size=100)
+		self.Xtr, self.Xte, self.Ytr, self.Yte = train_test_split(data.data, data.target, shuffle=True, train_size=50)
 		self.KLtr = [pairwise.homogeneous_polynomial_kernel(self.Xtr, degree=d) for d in range(1,6)]
 		self.KLte = [pairwise.homogeneous_polynomial_kernel(self.Xte, self.Xtr, degree=d) for d in range(1,6)]
 		self.KLtr_g = HPK_generator(self.Xtr, degrees=range(1,6))
@@ -197,19 +198,34 @@ class TestMKL(unittest.TestCase):
 		self.base_evaluation(algorithms.EasyMKL(learner=algorithms.KOMD(lam=1)))
 		
 	def test_GRAM(self):
-		pass
+		self.base_evaluation(algorithms.GRAM(max_iter=10))
+		self.base_evaluation(algorithms.GRAM(max_iter=10, learner=SVC(C=10)))
+		self.base_evaluation(algorithms.GRAM(max_iter=10, learner=algorithms.KOMD(lam=1)))
+
+	def test_callbacks(self):
+		earlystop = callbacks.EarlyStopping(
+			self.KLte, 
+			self.Yte, 
+			patience=5, 
+			cooldown=1, 
+			metric='auc',
+			)
+		clf = algorithms.GRAM(max_iter=100, learning_rate=.01, callbacks=[earlystop])
+		clf = clf.fit(self.KLtr, self.Ytr)
+
 
 	def base_evaluation(self, clf):
+		return
 		clf = clf.fit(self.KLtr, self.Ytr)
-		w = clf.weights
-		ker = clf.ker_matrix
+		w = clf.solution.weights
+		ker = clf.solution.ker_matrix
 		self.assertRaises(ValueError, clf.fit, self.Xtr, self.Ytr)
 		self.assertRaises(ValueError, clf.fit, self.KLtr, self.Yte)
 		y = clf.predict(self.KLte)
 		self.assertEqual(len(self.Yte), len(y))
 		clf = clf.fit(self.KLtr_g, self.Ytr)
-		self.assertTrue(matNear(w, clf.weights))
-		self.assertTrue(matNear(ker, clf.ker_matrix))
+		self.assertTrue(matNear(w, clf.solution.weights))
+		self.assertTrue(matNear(ker, clf.solution.ker_matrix))
 		self.assertTrue(matNear(y, clf.predict(self.KLte_g)))
 
 
