@@ -6,10 +6,10 @@ Author: Ivano Lauriola, ivano.lauriola@phd.unipd.it
 
 '''
 
-from sklearn.datasets import load_iris
-ds = load_iris()
+#load data
+from sklearn.datasets import load_breast_cancer as load
+ds = load()
 X,Y = ds.data, ds.target
-
 
 from MKLpy.preprocessing import normalization
 X = normalization(X)
@@ -20,7 +20,7 @@ Xtr,Xte,Ytr,Yte = train_test_split(X,Y, test_size=.5, random_state=42)
 
 
 from MKLpy.metrics import pairwise
-from MKLpy.utils.matrices import identity_kernel
+from MKLpy.utils.misc import identity_kernel
 import numpy as np
 
 #making 20 homogeneous polynomial kernels.
@@ -32,8 +32,21 @@ KLte.append(np.zeros(KLte[0].shape))
 
 
 from MKLpy.algorithms import GRAM
-from sklearn.svm import SVC
+from MKLpy.scheduler import ReduceOnWorsening
+from MKLpy.callbacks import EarlyStopping
 
-#play with max iter (reduce the number if the problem is big) and learning rate!
-clf = GRAM(max_iter=1000, learner=SVC(C=1000), learning_rate=1).fit(KLtr,Ytr)
-print (clf.weights)
+earlystop = EarlyStopping(
+	KLte, 
+	Yte, 
+	patience=100,
+	cooldown=1, 
+	metric='auc',
+)
+scheduler = ReduceOnWorsening()
+
+clf = GRAM(
+	max_iter=1000, 
+	learning_rate=.01, 
+	callbacks=[earlystop], 
+	scheduler=ReduceOnWorsening()).fit(KLtr, Ytr)
+

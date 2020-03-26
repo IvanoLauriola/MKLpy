@@ -85,7 +85,7 @@ class MKL(BaseEstimator, ClassifierMixin):
 		if self.multiclass_:
 			raise BinaryProblemError("combine_kernels requires binary classification problems")
 		self.solution = self._combine_kernels()
-		return solution.ker_matrix
+		return self.solution.ker_matrix
 
 
 	def _combine_kernels(self):

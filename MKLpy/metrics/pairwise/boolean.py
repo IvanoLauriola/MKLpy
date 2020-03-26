@@ -16,6 +16,7 @@ import numpy as np
 from scipy.special import binom
 from scipy.sparse import issparse
 from sklearn.metrics.pairwise import check_pairwise_arrays
+from sklearn.metrics.pairwise import linear_kernel
 
 
 

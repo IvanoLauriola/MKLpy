@@ -49,15 +49,15 @@ from MKLpy.algorithms import AverageMKL, EasyMKL, KOMD	#KOMD is not a MKL algori
 print ('training AverageMKL...', end='')
 clf = AverageMKL().fit(KLtr,Ytr)	#a wrapper for averaging kernels
 print ('done')
-print(clf.weights)			#print the weights of the combination of base kernels
-K_average = clf.ker_matrix	#the combined kernel matrix
+K_average = clf.solution.ker_matrix	#the combined kernel matrix
 
 
 print ('training EasyMKL...', end='')
 clf = EasyMKL(lam=0.1).fit(KLtr,Ytr)		#combining kernels with the EasyMKL algorithm
 #lam is a hyper-parameter in [0,1]
 print ('done')
-print (clf.weights)
+print ('the combination weights are:')
+print (clf.solution.weights)
 
 #evaluate the solution
 from sklearn.metrics import accuracy_score, roc_auc_score
@@ -69,8 +69,11 @@ print ('Accuracy score: %.3f, roc AUC score: %.3f' % (accuracy, roc_auc))
 
 
 #select the base-learner
-#MKL algorithms use a hard-margin as base learned (or KOMD in the case of EasyMKL). It is possible to define a different base learner
+#MKL algorithms use a hard-margin SVM as base learned (or KOMD in the case of EasyMKL).
+#It is possible to define a different base learner
 from sklearn.svm import SVC
 base_learner = SVC(C=0.1)
+print ('training EasyMKL with a soft-SVM...', end='')
 clf = EasyMKL(learner=base_learner)
 clf = clf.fit(KLtr,Ytr)
+print ('done')

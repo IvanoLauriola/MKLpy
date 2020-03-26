@@ -58,17 +58,17 @@ def all_subsequences_embedding(x, binary=False):
 
 def spectrum_kernel(X, Z=None, p=2, binary=False):	
 	embedding = lambda s : spectrum_embedding(s, p=p, binary=binary)
-	return string_kernel(embedding, X=X, Z=Z, workers=workers)
+	return string_kernel(embedding, X=X, Z=Z)
 
 
 def fixed_length_subsequences_kernel(X, Z=None, p=2, binary=False):
-	embedding = lambda s : fixed_length_embedding(s, p=p, binary=binary)
-	return string_kernel(embedding, X=X, Z=Z, workers=workers)
+	embedding = lambda s : fixed_length_subsequences_embedding(s, p=p, binary=binary)
+	return string_kernel(embedding, X=X, Z=Z)
 	
 
-def all_subsequences_kernel(X, T=None, binary=False):
-	embedding = lambda s : all_subsequence_embedding(s, binary=binary)
-	return string_kernel(embedding, X=X, Z=Z, workers=workers)
+def all_subsequences_kernel(X, Z=None, binary=False):
+	embedding = lambda s : all_subsequences_embedding(s, binary=binary)
+	return string_kernel(embedding, X=X, Z=Z)
 
 
 

@@ -20,7 +20,7 @@ def __def_score__(score):
 
 #data una lista di kernel, un classificatore ed i parametri faccio cv
 def cross_val_score(KL, Y, estimator, cv=None, n_folds=3, scoring='roc_auc', random_state=None, shuffle=True):
-	scorer, f = __def_score__(scoring)
+    scorer, f = __def_score__(scoring)
     f = getattr(estimator,f)
     n = len(Y)
     cv   = cv or KFold(n_folds, random_state=random_state, shuffle=shuffle)
@@ -40,7 +40,11 @@ def cross_val_score(KL, Y, estimator, cv=None, n_folds=3, scoring='roc_auc', ran
 def train_test_split(KL, Y, train_size=None, test_size=None, random_state=None, shuffle=True):
     '''returns two kernel lists, for train and test'''
     idx = range(len(Y))
-    train,test = skms.train_test_split(idx, train_size=train_size, test_size=test_size, random_state=random_state, shufle=shuffle)
+    train,test = skms.train_test_split(idx, 
+        train_size=train_size, 
+        test_size=test_size, 
+        random_state=random_state, 
+        shuffle=shuffle)
     KL_tr = [K[train][:,train] for K in KL]
     KL_te = [K[test ][:,train] for K in KL]
     return KL_tr, KL_te, np.array(Y)[train], np.array(Y)[test]

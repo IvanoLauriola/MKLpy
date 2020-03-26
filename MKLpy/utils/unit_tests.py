@@ -13,6 +13,7 @@ from sklearn.svm import SVC
 from MKLpy import preprocessing
 from MKLpy import callbacks
 from MKLpy import metrics
+from MKLpy.scheduler import ReduceOnWorsening
 from MKLpy.metrics import pairwise
 from MKLpy import algorithms
 from MKLpy.utils.exceptions import SquaredKernelError, InvalidKernelsListError, BinaryProblemError
@@ -91,9 +92,10 @@ class TestPairwise(unittest.TestCase):
 	def setUp(self):
 		data = load_breast_cancer()
 		self.Xtr, self.Xte, self.Ytr, self.Yte = train_test_split(data.data, data.target, shuffle=True, test_size=.2)
-		self.S = ['aaba', 'bac', 'abac']
+		self.Str = ['aaba', 'bac', 'abac', 'waibba', 'aaiicaaac']
+		self.Ste = ['aaa','bac','bababbwa']
 
-	def test_hp_kernel(self):
+	def test_HPK_train(self):
 		Ktr = self.Xtr.dot(self.Xtr.T)
 		self.assertTrue(matNear(Ktr,linear_kernel(self.Xtr)))
 		self.assertTrue(matNear(
@@ -103,7 +105,15 @@ class TestPairwise(unittest.TestCase):
 			pairwise.homogeneous_polynomial_kernel(self.Xtr, degree=5),
 			polynomial_kernel(self.Xtr, degree=5, gamma=1, coef0=0)))
 		self.assertTrue(matNear(Ktr**3, polynomial_kernel(self.Xtr, degree=3, gamma=1, coef0=0)))
+		self.assertTrue(matNear(
+			pairwise.homogeneous_polynomial_kernel(self.Xtr, self.Xtr, degree=3),
+			polynomial_kernel(self.Xtr, self.Xtr, degree=3, gamma=1, coef0=0)))
+
+	def test_HPK_test(self):
+		Ktr = linear_kernel(self.Xtr)
 		Kte = self.Xte.dot(self.Xtr.T)
+		self.assertTrue(matNear(Kte, 
+			pairwise.homogeneous_polynomial_kernel(self.Xte, self.Xtr, degree=1)))
 		self.assertTrue(matNear(
 			pairwise.homogeneous_polynomial_kernel(self.Xte, self.Xtr, degree=4),
 			polynomial_kernel(self.Xte, self.Xtr, degree=4, gamma=1, coef0=0)))
@@ -112,7 +122,13 @@ class TestPairwise(unittest.TestCase):
 		pass
 
 	def test_spectrum(self):
-		pass
+		Ktr = pairwise.spectrum_kernel(self.Str, p=2)
+		self.assertTupleEqual(Ktr.shape, (len(self.Str), len(self.Str)))
+		Kte = pairwise.spectrum_kernel(self.Ste, self.Str, p=2)
+		self.assertTupleEqual(Kte.shape, (len(self.Ste), len(self.Str)))
+		self.assertEqual(Ktr[0,1], 1)
+		self.assertEqual(Ktr[0,2], 2)
+		self.assertEqual(Kte[0,4], 6)
 
 
 
@@ -181,11 +197,14 @@ class TestMKL(unittest.TestCase):
 	def setUp(self):
 		data = load_breast_cancer()
 		self.Xtr, self.Xte, self.Ytr, self.Yte = train_test_split(data.data, data.target, shuffle=True, train_size=50)
+		self.Xtr[:,0] = self.Ytr
+		self.Xte[:,0] = self.Yte
+		self.Xtr = preprocessing.normalization(self.Xtr)
+		self.Xte = preprocessing.normalization(self.Xte)
 		self.KLtr = [pairwise.homogeneous_polynomial_kernel(self.Xtr, degree=d) for d in range(1,6)]
 		self.KLte = [pairwise.homogeneous_polynomial_kernel(self.Xte, self.Xtr, degree=d) for d in range(1,6)]
 		self.KLtr_g = HPK_generator(self.Xtr, degrees=range(1,6))
 		self.KLte_g = HPK_generator(self.Xte, self.Xtr, degrees=range(1,6))
-
 
 	def test_AverageMKL(self):
 		self.base_evaluation(algorithms.AverageMKL())
@@ -203,16 +222,29 @@ class TestMKL(unittest.TestCase):
 		self.base_evaluation(algorithms.GRAM(max_iter=10, learner=algorithms.KOMD(lam=1)))
 
 	def test_callbacks(self):
-		earlystop = callbacks.EarlyStopping(
+		earlystop_auc = callbacks.EarlyStopping(
 			self.KLte, 
 			self.Yte, 
 			patience=5, 
 			cooldown=1, 
-			metric='auc',
-			)
-		clf = algorithms.GRAM(max_iter=100, learning_rate=.01, callbacks=[earlystop])
+			metric='auc')
+		earlystop_acc = callbacks.EarlyStopping(
+			self.KLte, 
+			self.Yte, 
+			patience=3, 
+			cooldown=2, 
+			metric='accuracy')
+		cbks = [earlystop_auc, earlystop_acc]
+		clf = algorithms.GRAM(max_iter=100, learning_rate=.01, callbacks=cbks)
 		clf = clf.fit(self.KLtr, self.Ytr)
 
+	def test_scheduler(self):
+		scheduler = ReduceOnWorsening()
+		clf = algorithms.GRAM(max_iter=10, learning_rate=.01, scheduler=scheduler)\
+			.fit(self.KLtr, self.Ytr)
+		scheduler = ReduceOnWorsening(multiplier=.6, min_lr=1e-4)
+		clf = algorithms.GRAM(max_iter=10, learning_rate=.01, scheduler=scheduler)\
+			.fit(self.KLtr, self.Ytr)
 
 	def base_evaluation(self, clf):
 		return

@@ -14,7 +14,7 @@ class Scheduler():
 		self.model = model
 
 	def step(self, i, delta):
-		pass
+		raise NotImplementedError("This is an abstract method")
 
 
 

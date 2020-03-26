@@ -12,9 +12,9 @@ import MKLpy
 
 
 #load data
-print ('loading \'iris\' (multiclass) dataset...', end='')
-from sklearn.datasets import load_iris
-ds = load_iris()
+print ('loading dataset...', end='')
+from sklearn.datasets import load_breast_cancer as load
+ds = load()
 X,Y = ds.data, ds.target
 
 '''
@@ -50,17 +50,16 @@ KLtr,KLte,Ytr,Yte = train_test_split(KL, Y, test_size=.3, random_state=42)
 
 #MKL algorithms
 from MKLpy.algorithms import EasyMKL, KOMD	#KOMD is not a MKL algorithm but a simple kernel machine like the SVM
-from MKLpy.model_selection import cross_val_score, cross_val_predict
+from MKLpy.model_selection import cross_val_score
 from sklearn.svm import SVC
 import numpy as np
 print ('tuning lambda for EasyMKL...', end='')
-base_learner = SVC(C=10000)	#simil hard-margin svm
+base_learner = SVC(C=10000)	#"hard"-margin svm
 best_results = {}
 for lam in [0, 0.01, 0.1, 0.2, 0.9, 1]:	#possible lambda values for the EasyMKL algorithm
-	#MKLpy.model_selection.cross_val_predict performs the cross validation automatically, it optimizes the accuracy
-	#the counterpart cross_val_score optimized the roc_auc_score (use score='roc_auc')
-	#WARNING: these functions will change in the next version
-	scores = cross_val_predict(KLtr, Ytr, EasyMKL(learner=base_learner, lam=lam), n_folds=5, score='accuracy')
+	#MKLpy.model_selection.cross_val_score performs the cross validation automatically, it may returns
+	#accuracy, auc, or F1 scores
+	scores = cross_val_score(KLtr, Ytr, EasyMKL(learner=base_learner, lam=lam), n_folds=5, scoring='accuracy')
 	acc = np.mean(scores)
 	if not best_results or best_results['score'] < acc:
 		best_results = {'lam' : lam, 'score' : acc}
