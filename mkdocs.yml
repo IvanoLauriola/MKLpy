@@ -1,0 +1,19 @@
+site_name: MKLpy
+repo_url: https://github.com/IvanoLauriola/MKLpy
+repo_name: "GitHub"
+site_description: "Code documenation for MKLpy"
+site_author: "Lauriola Ivano"
+theme: readthedocs
+
+nav:
+  - Home: index.md
+  - Algorithms: algorithms.md
+  - Callbacks: callbacks.md
+  - Scheduler: scheduler.md
+  - Examples: examples.md
+  - About: about.md
+  - FAQ: faq.md
+
+
+markdown_extensions:
+  - admonition

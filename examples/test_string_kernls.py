@@ -30,7 +30,8 @@ from MKLpy.metrics.pairwise import spectrum_embedding, fixed_length_subsequences
 
 # string embeddings are sparse by definition, hence, we adopt a dict-based notation
 s = X[4]
-Ep = spectrum_embedding(s, p=2)
+Ep = spectrum_embedding(s, p
+	2)
 Ef = fixed_length_subsequences_embedding(s, p=2)
 Ea = all_subsequences_embedding(s)
 
