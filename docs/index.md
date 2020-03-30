@@ -5,9 +5,9 @@
 
 This package contains:
 
-* the implementation of MKL algorithms, such as **EasyMKL** and **GRAM**;
-* kernel functions, such as **polynomial**, **boolean** kernels, and **string** kernels;
-* various metrics, such as kernel_alignment, radius, margin, spectral ratio...
+* the implementation of MKL algorithms (**EasyMKL**, **GRAM**);
+* kernel functions (**polynomial**, **boolean** kernels, and **string** kernels);
+* various metrics and tools (kernel_alignment, radius, margin, spectral ratio...)
 
 The ```examples``` section contains useful snippets of code.
 
@@ -21,7 +21,7 @@ The ```examples``` section contains useful snippets of code.
 pip install MKLpy
 ```
 
-To work properly, **MKLpy** requires [numpy](https://www.numpy.org/), [scikit-learn](https://scikit-learn.org/stable/), and [cvxopt](https://cvxopt.org/).
+**MKLpy** requires [numpy](https://www.numpy.org/), [scikit-learn](https://scikit-learn.org/stable/), and [cvxopt](https://cvxopt.org/) installed.
 
 
 
@@ -36,8 +36,7 @@ To work properly, **MKLpy** requires [numpy](https://www.numpy.org/), [scikit-le
 * efficient optimization;
 * [PyTorch](https://pytorch.org/) as backend**!**
 
-- - -
 
-### Citing MKLpy
 
-If you use MKLpy for a scientific purpose, please cite this library.
+!!! warning
+	If you use MKLpy for a scientific purpose, please **cite** this library.
