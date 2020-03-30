@@ -16,12 +16,12 @@ nav:
   - Home: index.md
   - About: about.md
   - FAQ: faq.md
-  - Documenation:
+  - DOCUMENTATION:
     - Algorithms: algorithms.md
     - Generators: generators.md
     - Callbacks: callbacks.md
     - Scheduler: scheduler.md
-  - Examples: 
+  - EXAMPLES: 
     - Basic usage: examples_basic.md
     - Training   : examples_training.md
   
