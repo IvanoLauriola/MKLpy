@@ -16,12 +16,12 @@ nav:
   - Home: index.md
   - About: about.md
   - FAQ: faq.md
-  - <span style="color:#2E64FE">Documenation</span>:
+  - Documenation:
     - Algorithms: algorithms.md
     - Generators: generators.md
     - Callbacks: callbacks.md
     - Scheduler: scheduler.md
-  - <span style="color:#2E64FE">examples</span>: 
+  - Examples: 
     - Basic usage: examples_basic.md
     - Training   : examples_training.md
   
