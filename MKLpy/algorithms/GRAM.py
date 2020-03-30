@@ -50,17 +50,34 @@ def opt_margin(K, YY, init_sol=None):
 
 class GRAM(AlternateMKL):
 
-    def __init__(self, learner=SVC(C=1000), multiclass_strategy='ova', verbose=False,
-                max_iter=1000, learning_rate=0.01, callbacks=[], scheduler=None):
+    def __init__(self, 
+        learner=SVC(C=1000), 
+        multiclass_strategy='ova', 
+        verbose=False,
+        max_iter=1000, 
+        learning_rate=0.01, 
+        tolerance=1e-7, 
+        callbacks=[], 
+        scheduler=None ):
+
         super().__init__(
-            learner=learner, multiclass_strategy=multiclass_strategy, 
-            max_iter=max_iter, verbose=verbose, callbacks=callbacks,
-            scheduler=scheduler, direction='min', learning_rate=learning_rate)
+            learner=learner, 
+            multiclass_strategy=multiclass_strategy, 
+            max_iter=max_iter, 
+            verbose=verbose, 
+            tolerance=tolerance,
+            callbacks=callbacks,
+            scheduler=scheduler, 
+            direction='min', 
+            learning_rate=learning_rate, 
+        )
         self.func_form = summation
 
 
     def get_params(self, deep=True):
-        return super().get_params()
+        params = super().get_params()
+        #no additional algorithm-specific parameters
+        return params
 
 
     def initialize_optimization(self):
@@ -98,8 +115,8 @@ class GRAM(AlternateMKL):
         w /= sum(w)
         ker_matrix = self.func_form(self.KL, w)
         try :
-            #raise Exception
-            new_alpha,r2 = opt_radius(ker_matrix       ,init_sol=alpha)
+            # try warm start in radius/margin reoptimization
+            new_alpha,r2 = opt_radius(ker_matrix   ,init_sol=alpha)
             new_gamma,m2 = opt_margin(ker_matrix,YY,init_sol=gamma)
         except :
             new_alpha,r2 = opt_radius(ker_matrix   )

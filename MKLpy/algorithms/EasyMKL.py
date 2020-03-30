@@ -78,5 +78,6 @@ class EasyMKL(MKL):
  
     def get_params(self, deep=True):
         # this estimator has parameters:
-        new_params = {'lam': self.lam}
-        return super().get_params().update(new_params)
+        params = super().get_params()
+        params.update({'lam': self.lam})
+        return params

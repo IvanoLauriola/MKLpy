@@ -24,9 +24,18 @@ class Cache():
 
 class AlternateMKL(MKL):
 
-	def __init__(self, learner=SVC(C=1000), multiclass_strategy='ova', verbose=False,
-				 max_iter=1000, learning_rate=0.01, tolerance=1e-7, callbacks=[], 
-				 scheduler=None, direction='min'):
+	def __init__(self, 
+		learner=SVC(C=1000), 
+		multiclass_strategy='ova', 
+		verbose=False,
+		max_iter=1000, 
+		learning_rate=0.01, 
+		tolerance=1e-7, 
+		callbacks=[], 
+		scheduler=None, 
+		direction='min'
+		):
+
 		super().__init__(learner=learner, multiclass_strategy=multiclass_strategy, verbose=verbose)
 		self.max_iter 		= max_iter
 		self.learning_rate	= learning_rate
@@ -47,12 +56,15 @@ class AlternateMKL(MKL):
 
 	def get_params(self, deep=True):
 		# this estimator has parameters:
-		new_params = {'max_iter' 		: self.max_iter,
-					  'learning_rate'	: self.learning_rate,
-					  'tolerance'		: self.tolerance,
-					  'callbacks'		: self.callbacks,
-					  }
-		return super().get_params().update(new_params)
+		params = super().get_params()
+		params.update({
+			'max_iter' 		: self.max_iter,
+			'learning_rate'	: self.learning_rate,
+			'tolerance'		: self.tolerance,
+			'callbacks'		: self.callbacks,
+			'scheduler'       : self.scheduler,
+		})
+		return params
 
 
 
@@ -89,7 +101,6 @@ class AlternateMKL(MKL):
 
 			#stop: max_iter (convergence is False)
 			if step > self.max_iter:
-				print ('max iter reached')
 				break
 
 			#callbacks on_step_begin
@@ -104,7 +115,7 @@ class AlternateMKL(MKL):
 
 			# if the current solution is negative, then I can play with lr
 			if improvement < 0 and self.scheduler:
-				print ('[%d][AlternateMKL] negative improvement')
+				#print ('[%d][AlternateMKL] negative improvement')
 				continue
 			
 
@@ -123,8 +134,4 @@ class AlternateMKL(MKL):
 			callback.on_train_end()
 
 		return self.solution
-
-
-
-
 

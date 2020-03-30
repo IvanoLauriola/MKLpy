@@ -29,9 +29,9 @@ class ReduceOnWorsening(Scheduler):
 	def step(self, i, delta):
 		if delta < 0:
 			self.model.learning_rate *= self.multiplier
-			print ('[%d][scheduler] %f improv. learning rate set to' % (i,delta), self.model.learning_rate)
+			#print ('[%d][scheduler] %f improv. learning rate set to' % (i,delta), self.model.learning_rate)
 		if self.model.learning_rate < self.min_lr:
 			self.model.convergence = True
-			print ('[%d][scheduler] min lr, convergence is reached' % i)
+			#print ('[%d][scheduler] min lr, convergence is reached' % i)
 
 

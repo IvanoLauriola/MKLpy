@@ -6,13 +6,14 @@ sys.path.append("../..")
 
 import unittest
 import numpy as np
-from sklearn.datasets import load_breast_cancer
+from sklearn.datasets import load_breast_cancer, load_iris, load_digits
 from sklearn.metrics.pairwise import linear_kernel, polynomial_kernel
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
 from MKLpy import preprocessing
 from MKLpy import callbacks
 from MKLpy import metrics
+from MKLpy import multiclass
 from MKLpy.scheduler import ReduceOnWorsening
 from MKLpy.metrics import pairwise
 from MKLpy import algorithms
@@ -197,12 +198,10 @@ class TestMKL(unittest.TestCase):
 	def setUp(self):
 		data = load_breast_cancer()
 		self.Xtr, self.Xte, self.Ytr, self.Yte = train_test_split(data.data, data.target, shuffle=True, train_size=50)
-		self.Xtr[:,0] = self.Ytr
-		self.Xte[:,0] = self.Yte
 		self.Xtr = preprocessing.normalization(self.Xtr)
 		self.Xte = preprocessing.normalization(self.Xte)
-		self.KLtr = [pairwise.homogeneous_polynomial_kernel(self.Xtr, degree=d) for d in range(1,6)]
-		self.KLte = [pairwise.homogeneous_polynomial_kernel(self.Xte, self.Xtr, degree=d) for d in range(1,6)]
+		self.KLtr = [pairwise.homogeneous_polynomial_kernel(self.Xtr, degree=d) for d in range(1,11)]
+		self.KLte = [pairwise.homogeneous_polynomial_kernel(self.Xte, self.Xtr, degree=d) for d in range(1,11)]
 		self.KLtr_g = HPK_generator(self.Xtr, degrees=range(1,6))
 		self.KLte_g = HPK_generator(self.Xte, self.Xtr, degrees=range(1,6))
 
@@ -259,6 +258,37 @@ class TestMKL(unittest.TestCase):
 		self.assertTrue(matNear(w, clf.solution.weights))
 		self.assertTrue(matNear(ker, clf.solution.ker_matrix))
 		self.assertTrue(matNear(y, clf.predict(self.KLte_g)))
+
+
+
+class TestMulticlass(unittest.TestCase):
+
+	def setUp(self):
+		data = load_digits()
+		self.Xtr, self.Xte, self.Ytr, self.Yte = train_test_split(data.data, data.target, shuffle=True, train_size=.2)
+		self.Xtr = preprocessing.normalization(self.Xtr)
+		self.Xte = preprocessing.normalization(self.Xte)
+		self.KLtr = [pairwise.homogeneous_polynomial_kernel(self.Xtr, degree=d) for d in range(1,11)]
+		self.KLte = [pairwise.homogeneous_polynomial_kernel(self.Xte, self.Xtr, degree=d) for d in range(1,11)]
+
+	def test_multiclass_ova(self):
+		mkl = algorithms.GRAM(multiclass_strategy='ova', learner=SVC(), max_iter=2).fit(self.KLtr, self.Ytr)
+		clf = multiclass.OneVsRestMKLClassifier(mkl).fit(self.KLtr, self.Ytr)
+		classes = np.unique(self.Ytr) 
+		self.assertEqual(len(mkl.solution), len(classes))
+		for c in classes:
+			self.assertListEqual(clf.solution[c].weights.tolist(), mkl.solution[c].weights.tolist())
+
+	def test_multiclass_ovo(self):
+		mkl = algorithms.EasyMKL(multiclass_strategy='ovo', learner=SVC()).fit(self.KLtr, self.Ytr)
+		clf = multiclass.OneVsOneMKLClassifier(mkl).fit(self.KLtr, self.Ytr)
+		classes = np.unique(self.Ytr) 
+		n = len(classes)
+		self.assertEqual(len(mkl.solution), (n*(n-1)/2))
+		c1, c2 = classes[:2]
+		self.assertListEqual(clf.solution[(c1,c2)].weights.tolist(), mkl.solution[(c1,c2)].weights.tolist())
+		
+
 
 
 

@@ -89,8 +89,8 @@ class EarlyStopping(Callback):
 			raise Error('Metric error')
 
 		self.vals.append(current)#ratio(self.model.solution.ker_matrix, self.model.Y))
-		print ('[%d][earlystopping] current' % step, \
-			self.model.solution.objective, self.vals[-1], current)
+		#print ('[%d][earlystopping] current' % step, \
+		#	self.model.solution.objective, self.vals[-1], current)
 
 
 		if self.monitor_op(current, self.best):

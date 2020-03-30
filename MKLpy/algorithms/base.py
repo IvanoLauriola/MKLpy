@@ -11,6 +11,7 @@ This file is distributed with the GNU General Public License v3 <http://www.gnu.
 
 from sklearn.utils.multiclass import check_classification_targets
 from sklearn.base import BaseEstimator, ClassifierMixin
+from sklearn.exceptions import NotFittedError
 from ..arrange import average, summation
 from ..utils.validation import check_KL_Y
 from ..utils.exceptions import BinaryProblemError
@@ -43,7 +44,7 @@ class MKL(BaseEstimator, ClassifierMixin):
 		self.multiclass_ = None
 		self.classes_    = None
 		self.learner.kernel = 'precomputed'
-		assert multiclass_strategy in ['ovo', 'ovr', 'ova']
+		assert multiclass_strategy in ['ovo', 'ovr', 'ova','custom']
 
 
 	def _prepare(self, KL, Y):
@@ -103,9 +104,7 @@ class MKL(BaseEstimator, ClassifierMixin):
 	def decision_function(self, KL):
 		if self.is_fitted == False:
 			raise NotFittedError("The base learner is not fitted yet. Call 'fit' with appropriate arguments before using this method.")
-		if self.multiclass_:
-			raise ValueError('Scores are not available for multiclass problems, use predict')
-		return self.learner.decision_function(self.func_form(KL,self.solution.weights))
+		return self.clf.decision_function(KL) if self.multiclass_ else self.learner.decision_function(self.func_form(KL,self.solution.weights))
 
 
 
