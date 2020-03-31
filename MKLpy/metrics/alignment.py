@@ -13,7 +13,7 @@ a value calculated by a metric, such as kernel alignment.
 """
 
 import numpy as np
-from ..utils.validation import check_squared, check_K_Y
+from ..utils import validation # import check_squared, check_K_Y
 from ..utils.misc import ideal_kernel,identity_kernel
 
 def alignment (K1, K2):
@@ -31,8 +31,8 @@ def alignment (K1, K2):
     v : np.float64,
         the value of kernel alignment between *K1* and *K2*.
     """
-    K1 = check_squared(K1)
-    K2 = check_squared(K2)
+    K1 = validation.check_squared(K1)
+    K2 = validation.check_squared(K2)
     f0 = (K1*K2).sum()
     f1 = (K1*K1).sum()
     f2 = (K2*K2).sum()
@@ -52,7 +52,7 @@ def alignment_ID(K):
     v : np.float64,
         the value of kernel alignment between *K* and an identity kernel.
     """
-    K = check_squared(K)
+    K = validation.check_squared(K)
     return alignment(K, identity_kernel(K.shape[0]))
 
 def alignment_yy(K,y1,y2=None):

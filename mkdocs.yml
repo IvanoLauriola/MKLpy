@@ -24,6 +24,8 @@ nav:
   - EXAMPLES: 
     - Basic usage: examples_basic.md
     - Training   : examples_training.md
+  - PROJECTS:
+    - KerNET: proj_kernet.md
   
 
 

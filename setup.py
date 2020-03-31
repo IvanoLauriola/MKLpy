@@ -8,7 +8,7 @@ with open("README.md", "r") as fh:
 setup(
   name = 'MKLpy',
   packages = find_packages(exclude=['build', '_docs', 'templates']),
-  version = '0.4.2',
+  version = '0.4.2b',
   install_requires=[
         "numpy",
         "scipy",
