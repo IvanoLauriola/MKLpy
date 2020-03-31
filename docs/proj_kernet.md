@@ -21,11 +21,25 @@ In the example, we use a simple multilayer feed forward dense neural network for
 from keras.models import Sequential, Model
 from keras.layers import Dense
 from keras import callbacks as callb
+from keras.utils import to_categorical
+
+import numpy as np
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+
+from MKLpy.algorithms import EasyMKL
+from MKLpy.utils.misc import identity_kernel
+from MKLpy.preprocessing import normalization
 
 
-Xtr, Ytr = ...		#training data (binary or multilabel classification)
-Xva, Yva = ...		#validation data
-# in this example we assume one-hotted labels!
+data = load_iris()	#let's try with iris dataset!
+X,Y = data.data, data.target
+num_classes = len(np.unique(Y))
+
+Yh = to_categorical(Y)	#I need one-hotted labels for training the NN
+Xtr, Xva, Ytr, Yva, Ytr_1h, Yva_1h = train_test_split(X, Y,
+        Yh, random_state=42, shuffle=True, test_size=.3)
 
 num_classes = len(np.unique(Y))
 
@@ -39,8 +53,8 @@ max_epochs    = 100
 
 #model setting
 model = Sequential()
-for l in range(num_hidden):	#add hidden layers
-	layer = Dense(num_neurons, activation=activation, name='hidden_%d' % (l+1))
+for l in range(1, num_hidden+1):	#add hidden layers
+	layer = Dense(num_neurons, activation=activation, name='hidden_%d' % l)
 	model.add(layer)
 classification_layer = Dense(num_classes, activation='softmax', name='output')
 model.add(classification_layer)
@@ -54,10 +68,10 @@ earlystop  = callb.EarlyStopping(
 #compilation
 model.compile(optimizer='sgd', loss='mse', metrics=['accuracy'])
 history = model.fit(
-	Xtr, Ytr, 
+	Xtr, Ytr_1h, 
 	batch_size=batch_size, 
 	epochs=max_epochs, 
-	validation_data=(Xva, Yva), 
+	validation_data=(Xva, Yva_1h), 
 	verbose=1,
 	callbacks=[reduce_lr,earlystop])
 
@@ -74,7 +88,8 @@ def extract_reps(X, net):
 			outputs=model.get_layer(layer_name).output)
 		#rep_l contains the representation developed at the 
 		#layer l for each input examples
-		rep_l = partial_model.predict(X)
+		rep_l = partial_model.predict(X).astype(np.double)
+		rep_l = normalization(rep_l)	#we always prefer to normalize data
 		representations.append(rep_l)
 	return representations
 
@@ -91,17 +106,14 @@ KLva = [Xva @ X.T for Xva, X in zip(XLva, XLtr)]
 
 # have you seen the section *best practices* ?
 # I just ass the base input rerpesentation and an identity matrix
-from MKLpy.utils.misc import identity_kernel
 KLtr += [Xtr @ Xtr.T, identity_kernel(len(Ytr))]
 KLva += [Xva @ Xtr.T, np.zeros(KLva[0].shape)]
 
 # MKL part
-from MKLpy.algorithms import EasyMKL
 mkl = EasyMKL().fit(KLtr, Ytr)
 y_preds = mkl.predict(KLva)
 
 # final evaluation
-from sklearn.metrics import accuracy_score
 accuracy = accuracy_score(Yva, y_preds)
 print (accuracy)
 ```
