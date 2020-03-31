@@ -3,10 +3,12 @@
 
 This page contains a short description of KerNET, an ensemble system that combines neural networks and MKL. 
 
-In short, KerNET consists of two components:
+KerNET consists of two steps:
 
-* a neural network that learns and extracts base (or weak) kernels;
-* a MKL algorithm that combines the base kernels and performs classification.
+* Firstly, a deep neural network is trained on the target task. The representations developed at the intermediate layers of the network are then extracted ad used to compute linear kernels.
+* A MKL algorithm is finally used to combine the kernels extracted from the neural network and to perform classification.
+
+The network is only used to learn the representations (i.e. the kernels) used to solve the task. This is an interesting alternative to use polynomial, conjunctive, or other fixed kernels.
 
 !!! Paper
 	An exhaustive description of KerNET is available in the following paper:<br>
@@ -15,7 +17,7 @@ In short, KerNET consists of two components:
 The second part of the ensemble can be easily implemented with MKLpy, whereas the first part, i.e. the training of the neural network, depends on external libraries, such as [Tensorflow](https://www.tensorflow.org/), [Pytorch](https://pytorch.org/), or [Keras](https://keras.io/).
 
 We show in the following a complete example of KerNET when using Keras as neural networks library. 
-In the example, we use a simple multilayer feed forward dense neural network for simplicity. However, the same approach can be applied to any possible neural network.
+In the example, we use a simple multilayer feed-forward dense neural network. However, the same approach can be applied to any possible neural network.
 
 ```python
 from keras.models import Sequential, Model
@@ -80,8 +82,8 @@ def extract_reps(X, net):
 	''' this function extracts intermediate representations
 		developed by network for each input example in X.
 	'''
+	representations = []
 	for l in range(1, num_hidden+1):
-		representations = []
 		layer_name = 'hidden_%d' % l
 		partial_model = Model(
 			inputs=model.input, 
@@ -117,3 +119,4 @@ y_preds = mkl.predict(KLva)
 accuracy = accuracy_score(Yva, y_preds)
 print (accuracy)
 ```
+
