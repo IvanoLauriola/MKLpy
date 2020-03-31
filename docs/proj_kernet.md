@@ -105,7 +105,7 @@ KLtr = [X   @ X.T for X in XLtr]
 KLva = [Xva @ X.T for Xva, X in zip(XLva, XLtr)]
 
 # have you seen the section *best practices* ?
-# I just ass the base input rerpesentation and an identity matrix
+# I just add the base input rerpesentation and an identity matrix
 KLtr += [Xtr @ Xtr.T, identity_kernel(len(Ytr))]
 KLva += [Xva @ Xtr.T, np.zeros(KLva[0].shape)]
 
