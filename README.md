@@ -19,7 +19,7 @@ This package contains:
 
 The documentation of MKLpy is available on [readthedocs.io](https://mklpy.readthedocs.io/en/latest/)!
 
-[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://GitHub.com/Naereen/StrapDown.js/graphs/commit-activity)
+
 
 Installation
 ------------
@@ -52,6 +52,8 @@ Work in progress
 * more kernels for structured data;
 * incremental generators of kernels;
 * [tensorflow](https://www.tensorflow.org/) as backend **!**
+
+
 
 
 Citing MKLpy
