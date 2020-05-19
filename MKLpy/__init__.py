@@ -10,7 +10,15 @@ authos: Lauriola Ivano ivano.lauriola @phd.unipd.it
 """
 
 
-__all__ = ['algorithms',
-           'utils',
-           'preprocessing',
-           'metrics']
+__all__ = [
+    'algorithms',
+    'metrics',
+    'preprocessing',
+    'utils',
+    'arrange',
+    'callbacks',
+    'generators',
+    'model_selection',
+    'multiclass',
+    'scheduler',
+]

@@ -2,8 +2,10 @@
 
 
 **MKLpy** is a framework for **M**ultiple **K**ernel **L**earning (MKL)  inspired by the [scikit-learn](http://scikit-learn.org/stable) project.
+The library encapsulates *everything you need* to run MKL algorithms, from the kernels computation to the final evaluation.
 
-This package contains:
+
+MKLpy contains:
 
 * the implementation of MKL algorithms (**EasyMKL**, **GRAM**);
 * kernel functions (**polynomial**, **boolean** kernels, and **string** kernels);
@@ -14,27 +16,26 @@ The ```examples``` section contains useful snippets of code.
 
 - - -
 
-### Installation
+## Installation
 
-**MKLpy** is available on PyPI:
+MKLpy is available on **PyPI**:
 ```sh
 pip install MKLpy
 ```
 
-**MKLpy** requires [numpy](https://www.numpy.org/), [scikit-learn](https://scikit-learn.org/stable/), and [cvxopt](https://cvxopt.org/) installed.
+MKLpy requires [pytorch](https://pytorch.org/), [scikit-learn](https://scikit-learn.org/stable/), and [cvxopt](https://cvxopt.org/) installed.
 
 
 
 - - -
 
-### Work in progress
+## Work in progress
 
-**MKLpy** is under development! We are working to integrate several new features, including:
+MKLpy is under development! We are working to integrate several new features, including:
 
 * further MKL algorithms, such as MEMO, and SimpleMKL;
-* more kernels for structured data (graphs, trees);
-* efficient optimization;
-* [PyTorch](https://pytorch.org/) as backend**!**
+* additional kernels for structured data (graphs, trees);
+* efficient optimization
 
 
 

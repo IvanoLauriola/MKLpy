@@ -24,8 +24,9 @@ Metrics contains as sub-package:
 
 """
 
-from .evaluate import radius, margin, ratio, trace, frobenius, spectral_ratio
-from .alignment import alignment, alignment_ID, alignment_yy
+from .evaluate  import *
+from .alignment import *
+
 
 __all__ = ['radius',
            'margin',
@@ -36,6 +37,4 @@ __all__ = ['radius',
            'trace',
            'frobenius',
            'spectral_ratio',
-           'pairwise',
            ]
-

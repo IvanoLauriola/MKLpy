@@ -21,14 +21,14 @@ Xtr,Xte,Ytr,Yte = train_test_split(X,Y, test_size=.5, random_state=42)
 
 from MKLpy.metrics import pairwise
 from MKLpy.utils.misc import identity_kernel
-import numpy as np
+import torch
 
 #making 20 homogeneous polynomial kernels.
 #I suggest to add the identity kernel in order to make the GRAM initial solution easily separable
 #if the initial sol is not separable, GRAM may not work well
-KLtr = [pairwise.homogeneous_polynomial_kernel(Xtr, degree=d) for d in range(1,21)] + [identity_kernel(len(Ytr))]
-KLte = [pairwise.homogeneous_polynomial_kernel(Xte,Xtr, degree=d) for d in range(1,21)]
-KLte.append(np.zeros(KLte[0].shape))
+KLtr = [pairwise.homogeneous_polynomial_kernel(Xtr, degree=d) for d in range(1,11)] + [identity_kernel(len(Ytr))]
+KLte = [pairwise.homogeneous_polynomial_kernel(Xte,Xtr, degree=d) for d in range(1,11)]
+KLte.append(torch.zeros(KLte[0].size()))
 
 
 from MKLpy.algorithms import GRAM
@@ -45,8 +45,8 @@ earlystop = EarlyStopping(
 scheduler = ReduceOnWorsening()
 
 clf = GRAM(
-	max_iter=1000, 
-	learning_rate=.01, 
+	max_iter=100, 
+	learning_rate=.1, 
 	callbacks=[earlystop], 
-	scheduler=ReduceOnWorsening()).fit(KLtr, Ytr)
+	scheduler=scheduler).fit(KLtr, Ytr)
 

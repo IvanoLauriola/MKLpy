@@ -12,15 +12,8 @@ This module contains kernel functions for strings and sequences.
 """
 
 import numpy as np
-from scipy.special import binom
-from scipy.sparse import issparse
-from sklearn.metrics.pairwise import check_pairwise_arrays
+import torch
 import itertools
-from multiprocessing import Pool, cpu_count
-import joblib
-from threading import Thread
-from sklearn.utils import parallel_backend as pb
-
 
 
 
@@ -80,7 +73,7 @@ def string_kernel(embedding, X, Z=None):
 
 
 def dictionary_dot(EX, EZ):
-	K = np.zeros((len(EX), len(EZ)))
+	K = torch.zeros((len(EX), len(EZ)))
 	for iz, vz in enumerate(EZ):
 		for ix, vx in enumerate(EX):
 			K[ix,iz] = sum( vx[f]*vz[f] for f in vz.keys() & vx.keys() )

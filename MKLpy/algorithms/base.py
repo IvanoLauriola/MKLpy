@@ -16,7 +16,7 @@ from ..arrange import average, summation
 from ..utils.validation import check_KL_Y
 from ..utils.exceptions import BinaryProblemError
 from ..multiclass import OneVsOneMKLClassifier, OneVsRestMKLClassifier
-import numpy as np
+import torch
 
 
 class Solution():
@@ -29,7 +29,7 @@ class Solution():
 
 class MKL(BaseEstimator, ClassifierMixin):
 
-	func_form  = None   # a function which taskes a list of kernels and their weights and returns the combination
+	func_form  = None   # a function which takes a list of kernels and their weights and returns the combination
 	n_kernels  = None   # the number of kernels used in combination
 	KL 		   = None 	# the kernels list
 	solution   = None 	# solution of the algorithm
@@ -49,14 +49,15 @@ class MKL(BaseEstimator, ClassifierMixin):
 
 	def _prepare(self, KL, Y):
 		'''preprocess data before training'''
+
+		self.KL, self.Y = check_KL_Y(KL, Y)
 		check_classification_targets(Y)
-		self.classes_ = np.unique(Y)
-		if len(self.classes_) < 2:	# these algorithms are meant for classification only
+		self.n_kernels = len(self.KL)
+
+		self.classes_ = self.Y.unique()
+		if len(self.classes_) < 2:	# these algorithms are designed for classification only
 			raise ValueError("The number of classes has to be almost 2; got ", len(self.classes_))
 		self.multiclass_ = len(self.classes_) > 2
-
-		self.KL, self.Y = check_KL_Y(KL,Y)
-		self.n_kernels = len(self.KL)
 		return
 
 
@@ -102,7 +103,7 @@ class MKL(BaseEstimator, ClassifierMixin):
 		
 
 	def decision_function(self, KL):
-		if self.is_fitted == False:
+		if not self.is_fitted :
 			raise NotFittedError("The base learner is not fitted yet. Call 'fit' with appropriate arguments before using this method.")
 		return self.clf.decision_function(KL) if self.multiclass_ else self.learner.decision_function(self.func_form(KL,self.solution.weights))
 

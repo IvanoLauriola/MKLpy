@@ -1,4 +1,3 @@
-#from distutils.core import setup, find_packages
 from setuptools import setup, find_packages
 import os
 
@@ -7,11 +6,11 @@ with open("README.md", "r") as fh:
 
 setup(
   name = 'MKLpy',
-  packages = find_packages(exclude=['build', '_docs', 'templates']),
-  version = '0.4.3',
+  packages = find_packages(exclude=['build', 'docs', 'templates']),
+  version = '0.5',
   install_requires=[
         "numpy",
-        "scipy",
+        "torch"
         "cvxopt",
         "scikit-learn"
   ],
@@ -24,7 +23,7 @@ setup(
   keywords = ['kernel', 'MKL', 'learning', 'multiple kernel learning', 'EasyMKL','SVM','boolean kernels'],
   classifiers = [
                  'Development Status :: 3 - Alpha',
-                 'Programming Language :: Python :: 3.6',
+                 'Programming Language :: Python :: 3.8',
                  'Topic :: Scientific/Engineering :: Artificial Intelligence',
                  'Topic :: Scientific/Engineering :: Mathematics',
                 ],

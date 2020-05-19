@@ -19,7 +19,7 @@ from ..arrange import summation
 from ..utils.exceptions import BinaryProblemError
 
 from cvxopt import matrix, spdiag, solvers
-import numpy as np
+import torch
  
 
  
@@ -42,10 +42,10 @@ class EasyMKL(MKL):
 
         
     def _combine_kernels(self):
-        assert len(np.unique(self.Y)) == 2
+        assert len(self.Y.unique()) == 2
         Y = [1 if y==self.classes_[1] else -1 for y in self.Y]
         n_sample = len(self.Y)
-        ker_matrix = matrix(self.func_form(self.KL))
+        ker_matrix = matrix(self.func_form(self.KL).numpy())
         YY = spdiag(Y)
         #KLL = (1.0-self.lam)*YY*ker_matrix*YY
         #LID = spdiag([self.lam]*n_sample)
@@ -63,11 +63,11 @@ class EasyMKL(MKL):
         gamma = sol['x']
 
         yg = gamma.T * YY
-        weights = [(yg*matrix(K)*yg.T)[0] for K in self.KL]
+        weights = [(yg*matrix(K.numpy())*yg.T)[0] for K in self.KL]
          
         norm2 = sum([w for w in weights])
         
-        weights = np.array([w / norm2 for w in weights])
+        weights = torch.tensor([w / norm2 for w in weights])
         ker_matrix = self.func_form(self.KL, weights)
         return Solution(
             weights=weights,

@@ -11,27 +11,100 @@ This module contains other kernel functions
 
 """
 
-import numpy as np
-from scipy.sparse import issparse
-from sklearn.metrics.pairwise import linear_kernel
+import torch
+from ...utils.validation import check_pairwise_X_Z
+#from ...ultils import validation as v# import check_pairwise_X_Z
 
-def homogeneous_polynomial_kernel(X, Z=None, degree=2):
-    """performs the HPK kernel between the samples matricex *X* and *T*.
-    The HPK kernel is defines as:
-    .. math:: k(x,z) = \langle x,z \rangle^d
+__all__ = ['rbf_kernel']
 
+
+def linear_kernel(X, Z=None):
+    """computes the linear kernel between the samples matrices *X* and *Z*.
+    The kernel is defined as k(x,z) = <x,z>
+    
     Parameters
     ----------
-    X : (n,m) array_like,
-        the train samples matrix.
-    Z : (l,m) array_like,
-        the test samples matrix. If it is not defined, then the kernel is calculated
-        between *X* and *X*.
+    X: torch tensor of shape (n_samples_1, n_features)
+    Z: torch tensor of shape (n_samples_2, n_features)
 
     Returns
     -------
-    K : (l,n) ndarray,
-        the HPK kernel matrix.
+    K: torch tensor of shape (n_samples_1, n_samples_2),
+        the kernel matrix.
+    """
+
+    X, Z = check_pairwise_X_Z(X, Z)
+    return X @ Z.T
+
+
+def homogeneous_polynomial_kernel(X, Z=None, degree=2):
+    """computes the homogeneous polynomial kernel (HPK) between the samples matrices *X* and *Z*.
+    The kernel is defined as k(x,z) = <x,z>**degree
+    
+    Parameters
+    ----------
+    X: torch tensor of shape (n_samples_1, n_features)
+    Z: torch tensor of shape (n_samples_2, n_features)
+
+    Returns
+    -------
+    K: torch tensor of shape (n_samples_1, n_samples_2),
+        the kernel matrix.
     """
 
     return linear_kernel(X,Z)**degree
+
+
+def polynomial_kernel(X, Z=None, degree=2, gamma=1, coef0=1):
+    """computes the polynomial kernel between the samples matrices *X* and *Z*.
+    The kernel is defined as k(x,z) = (gamma <x,z> + coef0)**degree
+    
+    Parameters
+    ----------
+    X: torch tensor of shape (n_samples_1, n_features)
+    Z: torch tensor of shape (n_samples_2, n_features)
+
+    Returns
+    -------
+    K: torch tensor of shape (n_samples_1, n_samples_2),
+        the kernel matrix.
+    """
+
+    return (gamma * linear_kernel(X,Z) + coef0)**degree
+
+
+def euclidean_distances(X, Z=None):
+    """computes the pairwise euclidean distances between the samples matrices *X* and *Z*.
+    
+    Parameters
+    ----------
+    X: torch tensor of shape (n_samples_1, n_features)
+    Z: torch tensor of shape (n_samples_2, n_features)
+
+    Returns
+    -------
+    D: torch tensor of shape (n_samples_1, n_samples_2),
+        the distances matrix.
+    """
+    
+    X, Z = check_pairwise_X_Z(X, Z)
+    return torch.cdist(X, Z)
+
+
+def rbf_kernel(X, Z=None, gamma=1):
+    """computes the rbf kernel between the samples matrices *X* and *Z*.
+    The kernel is defined as k(x,z) = exp(-gamma ||x-z||^2)
+    
+    Parameters
+    ----------
+    X: torch tensor of shape (n_samples_1, n_features)
+    Z: torch tensor of shape (n_samples_2, n_features)
+
+    Returns
+    -------
+    K: torch tensor of shape (n_samples_1, n_samples_2),
+        the kernel matrix.
+    """
+
+    D = euclidean_distances(X, Z)
+    return  torch.exp(-gamma * D**2)

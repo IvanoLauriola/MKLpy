@@ -13,7 +13,7 @@ This module contains function that perform a transformation over kernels and sam
 
 import numpy as np
 from ..metrics import trace
-from ..utils.validation import check_squared, check_X
+from ..utils.validation import check_K
 
 
 
@@ -36,11 +36,11 @@ def kernel_normalization(K):
     
     .. math:: \hat{k}(x,z) = \frac{k(x,z)}{\sqrt{k(x,x)\cdot k(z,z)}}
     """
-    K = check_squared(K)
-    n = K.shape[0]
-    d = np.array([[K[i,i] for i in range(n)]])
-    Kn = K / np.sqrt(np.dot(d.T,d))
-    return Kn
+
+    K   = check_K(K)
+    n = K.size()[0]
+    d = K.diag().view(n,1)
+    return K / (d @ d.T)**0.5
     
 
 def tracenorm(K):
@@ -60,8 +60,8 @@ def tracenorm(K):
     -----
     In trace-normalization, the kernel is divided by the average of the diagonal.
     """
-    K = check_squared(K)
-    trn = trace(K) / K.shape[0]
+    K = check_K(K)
+    trn = trace(K) / K.size()[0]
     return K / trn
 
 
@@ -79,9 +79,8 @@ def kernel_centering(K):
     Kc : ndarray,
          the centered version of *K*.
     """
-    K = check_squared(K)
-    N = K.shape[0]
-    I = np.ones(K.shape)
-    C = np.diag(np.ones(N)) - (1.0/N * I)
-    Kc = np.dot(np.dot(C , K) , C)
-    return Kc
+    K = check_K(K)
+    N = K.size()[0]
+    I = torch.ones(K.size())
+    C = torch.ones(N).diag() - (1.0/N * I)
+    return C @ K @ C

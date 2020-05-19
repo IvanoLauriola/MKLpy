@@ -11,11 +11,10 @@ This module contains functions able to combine a list of kernels in a single one
 
 """
 
-import numpy as np
-import types
+import torch
 
 
-def summation (K_list, weights = None):
+def summation (KL, weights = None):
     """perform the weighted summation of each kernel in K_list.
 
     Parametes
@@ -38,15 +37,17 @@ def summation (K_list, weights = None):
     >>> Kwsum   = summation(Klist,weights)
     """
         
-    K = np.zeros(K_list[0].shape, dtype = np.double)
-    l = len(K_list)
-    weights = np.ones(l, dtype = np.double) if weights is None else weights
-    for w,ker in zip(weights, K_list):
+    K = torch.zeros(KL[0].size(), )
+    l = len(KL)
+    weights = torch.ones(l) if weights is None else weights
+    if l != len(weights):
+        raise ValueError('The weights vector and the kernels list are not aligned')
+    for w,ker in zip(weights, KL):
         K = K + w * ker
     return K
 
 
-def multiplication (K_list, weights = None):
+def multiplication (KL, weights = None):
     """perform the weighted multiplication of each kernel in K_list.
 
     Parametes
@@ -68,15 +69,17 @@ def multiplication (K_list, weights = None):
     >>> Ksum    = multiplication(Klist)
     >>> Kwsum   = multiplication(Klist,weights)
     """
-    K = np.ones(K_list[0].shape, dtype = np.float64)
-    l = len(K_list)
-    weights = np.ones(l, dtype = np.double) if type(weights) == types.NoneType else weights
-    for w,ker in zip(weights, K_list):
+    K = torch.zeros(KL[0].size(), )
+    l = len(KL)
+    weights = torch.ones(l) if weights is None else weights
+    if l != len(weights):
+        raise ValueError('The weights vector and the kernels list are not aligned')
+    for w,ker in zip(weights, KL):
         K = K * w * ker
     return K
 
 
-def average (K_list, weights = None):
+def average (KL, weights = None):
     """perform the mean of kernels in K_list.
 
     Parametes
@@ -98,10 +101,9 @@ def average (K_list, weights = None):
     >>> Ksum    = mean(Klist)
     >>> Kwsum   = mean(Klist,weights)
     """
-    l = len(K_list)
-    weights = np.ones(l, dtype = np.double) if weights is None else weights
-    K = summation(K_list, weights)
-    K /= np.sum(weights)
+    l = len(KL)
+    weights = torch.ones(l) if weights is None else weights
+    K = summation(KL, weights) / torch.sum(weights)
     return K
 
 

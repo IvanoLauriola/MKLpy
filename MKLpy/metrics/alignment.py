@@ -12,9 +12,8 @@ a value calculated by a metric, such as kernel alignment.
 
 """
 
-import numpy as np
-from ..utils import validation # import check_squared, check_K_Y
-from ..utils.misc import ideal_kernel,identity_kernel
+from ..utils import validation
+from ..utils.misc import ideal_kernel, identity_kernel
 
 def alignment (K1, K2):
     """evaluate the kernel alignment between two kernels.
@@ -31,12 +30,13 @@ def alignment (K1, K2):
     v : np.float64,
         the value of kernel alignment between *K1* and *K2*.
     """
-    K1 = validation.check_squared(K1)
-    K2 = validation.check_squared(K2)
+
+    K1 = validation.check_K(K1)
+    K2 = validation.check_K(K2)
     f0 = (K1*K2).sum()
     f1 = (K1*K1).sum()
     f2 = (K2*K2).sum()
-    return (f0 / np.sqrt(f1*f2))
+    return (f0 / (f1*f2)**.5).item()
 
 
 def alignment_ID(K):
@@ -52,13 +52,14 @@ def alignment_ID(K):
     v : np.float64,
         the value of kernel alignment between *K* and an identity kernel.
     """
-    K = validation.check_squared(K)
+
+    K = validation.check_K(K)
     return alignment(K, identity_kernel(K.shape[0]))
 
 def alignment_yy(K,y1,y2=None):
     """evaluate the kernel alignment between a kernel as input and
         the ideal kernel, calculated as
-        .. math:: Y\cdot Y^\top
+        .. math:: YY^\top
 
     Parameters
     ----------
@@ -71,10 +72,5 @@ def alignment_yy(K,y1,y2=None):
     v : np.float64,
         the value of kernel alignment between *K* and YY'
     """
-    #print (ideal_kernel(y1), y1)
-    return alignment(K,ideal_kernel(y1,y2))
 
-#def centered_alignment(K1,K2):
-#    C1 = kernel_centering(K1.copy())
-#    C2 = kernel_centering(K2.copy())
-#    return alignment(C1,C2)
+    return alignment(K,ideal_kernel(y1,y2))

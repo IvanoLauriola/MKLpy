@@ -10,7 +10,7 @@ KerNET consists of two steps:
 
 The network is only used to learn the representations (i.e. the kernels) used to solve the task. This is an interesting alternative to use polynomial, conjunctive, or other fixed kernels.
 
-!!! Paper
+!!! tip "Paper"
 	An exhaustive description of KerNET is available in the following paper:<br>
 	Ivano Lauriola, Claudio Gallicchio, and Fabio Aiolli: *"Enhancing deep neural networks via Multiple Kernel Learning". Pattern Recognition (2020)*
 

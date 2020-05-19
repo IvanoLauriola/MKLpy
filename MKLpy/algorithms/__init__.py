@@ -9,19 +9,20 @@ This file is distributed with the GNU General Public License v3 <http://www.gnu.
 
 """
 
+
 from .base import MKL
 from .AverageMKL import AverageMKL
-from .AlternateMKL import AlternateMKL
-from .komd import KOMD
 from .EasyMKL import EasyMKL
-from .MEMO import MEMO
 from .GRAM import GRAM
+from .komd import KOMD
+from .MEMO import MEMO
 
-__all__ = ['EasyMKL',
-           'KOMD',
-           'MKL',
-           'AverageMKL',
-           'AlternateMKL',
-           'MEMO',
-           'GRAM'
-           ]
+__all__ = [
+    'AlternateMKL',
+    'AverageMKL',
+    'MKL',
+    'EasyMKL',
+    'GRAM',
+    'KOMD',
+    'MEMO',
+]

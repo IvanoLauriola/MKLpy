@@ -16,7 +16,7 @@ from ..metrics import ratio
 
 def opt_radius(K, init_sol=None): 
     n = K.shape[0]
-    K = matrix(K)
+    K = matrix(K.numpy())
     P = 2 * K
     p = -matrix([K[i,i] for i in range(n)])
     G = -spdiag([1.0] * n)
@@ -32,7 +32,7 @@ def opt_radius(K, init_sol=None):
 def opt_margin(K, YY, init_sol=None):
     '''optimized margin evaluation'''
     n = K.shape[0]
-    P = 2 * (YY * matrix(K) * YY)
+    P = 2 * (YY * matrix(K.numpy()) * YY)
     p = matrix([0.0]*n)
     G = -spdiag([1.0]*n)
     h = matrix([0.0]*n)
@@ -142,7 +142,7 @@ class GRAM(AlternateMKL):
         a,b = [], []
         gammaY = gamma['x'].T*YY
         for K in self.KL:   #optimized for generators
-            K = matrix(K)
+            K = matrix(K.numpy().astype(np.double))
             a.append( 1.-(alpha['x'].T*matrix(K)*alpha['x'])[0] )
             b.append( (gammaY*matrix(K)*gammaY.T)[0] )
         ebb, eba = np.dot(eb,b), np.dot(eb,a)

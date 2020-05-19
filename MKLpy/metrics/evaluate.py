@@ -14,10 +14,8 @@ assign a value to each kernel in list using the radius of MEB, or the margin.
 
 """
 
-import numpy as np
 from cvxopt import matrix,solvers,spdiag
-from ..utils import validation # import check_squared, check_K_Y
-from ..utils.misc import to_diagonal
+from ..utils import validation
 
 def radius(K):
     """evaluate the radius of the MEB (Minimum Enclosing Ball) of examples in
@@ -33,17 +31,17 @@ def radius(K):
     r : np.float64,
         the radius of the minimum enclosing ball of examples in feature space.
     """
-    K = validation.check_squared(K).astype(np.double)
+    K = validation.check_K(K).numpy()
     n = K.shape[0]
     P = 2 * matrix(K)
-    p = -matrix([K[i,i] for i in range(n)])
+    p = -matrix(K.diagonal())
     G = -spdiag([1.0] * n)
     h = matrix([0.0] * n)
     A = matrix([1.0] * n).T
     b = matrix([1.0])
     solvers.options['show_progress']=False
     sol = solvers.qp(P,p,G,h,A,b)
-    return np.sqrt(abs(sol['primal objective']))
+    return abs(sol['primal objective'])**.5
 
 def margin(K,Y):
     """evaluate the margin in a classification problem of examples in feature space.
@@ -60,10 +58,10 @@ def margin(K,Y):
         the labels vector.
     """
     K, Y = validation.check_K_Y(K, Y, binary=True)
-    n = Y.shape[0]
+    n = Y.size()[0]
     Y = [1 if y==Y[0] else -1 for y in Y]
     YY = spdiag(Y)
-    P = 2*(YY*matrix(K)*YY)
+    P = 2*(YY*matrix(K.numpy())*YY)
     p = matrix([0.0]*n)
     G = -spdiag([1.0]*n)
     h = matrix([0.0]*n)
@@ -72,7 +70,7 @@ def margin(K,Y):
     b = matrix([[1.0],[1.0]],(2,1))
     solvers.options['show_progress']=False
     sol = solvers.qp(P,p,G,h,A,b)
-    return np.sqrt(sol['primal objective'])
+    return sol['primal objective']**.5
 
 def ratio(K,Y):
     """evaluate the ratio between the radius of MEB and the margin in feature space.
@@ -111,8 +109,8 @@ def trace(K):
     t : np.float64,
         the trace of *K*
     """
-    K = validation.check_squared(K)
-    return sum([K[i,i] for i in range(K.shape[0])])
+    K = validation.check_K(K)
+    return K.diag().sum().item()
 
 def frobenius(K):
     """return the frobenius-norm of the kernel as input.
@@ -127,8 +125,8 @@ def frobenius(K):
     t : np.float64,
         the frobenius-norm of *K*
     """
-    K = validation.check_squared(K)
-    return (K**2).sum()**.5
+    K = validation.check_K(K)
+    return ( (K**2).sum()**.5 ).item()
 
 def spectral_ratio(K,norm=True):
     """return the spectral ratio of the kernel as input.
@@ -145,10 +143,10 @@ def spectral_ratio(K,norm=True):
     t : np.float64,
         the spectral ratio of *K*, normalized iif *norm=True*
     """
-    K = validation.check_squared(K)
-    n = K.shape[0]
+    K = validation.check_K(K)
+    n = K.size()[0]
     c = trace(K)/frobenius(K)
-    return (c-1)/(np.sqrt(n)-1) if norm else c
+    return (c-1)/(n**.5 - 1) if norm else c
 
 
 

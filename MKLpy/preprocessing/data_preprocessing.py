@@ -11,9 +11,10 @@ This module contains function that perform a transformation over kernels and sam
 
 """
 
-import numpy as np
+import torch
 from ..metrics import trace
-from sklearn.preprocessing import normalize
+from ..utils.validation import check_X
+
 
 def normalization(X):
     """normalize a samples matrix (n,m) .. math:: \|X_i\|^2 = 1 \forall i \in [1..n]
@@ -28,7 +29,8 @@ def normalization(X):
     Xn : (n,m) ndarray,
          the normalized version of *X*.
     """
-    return normalize(X, norm='l2', axis=1, return_norm=False)
+    X = check_X(X)
+    return (X.T / torch.norm(X, dim=1, p=2)).T
 
 
 
@@ -45,8 +47,13 @@ def rescale(X):
     Xr : (n,m) ndarray,
          the rescaled version of *X* in [-1,1].
     """
-    X = rescale_01(X)
-    return (X * 2) - 1
+    X = check_X(X)
+    mi, ma = X.min(dim=0)[0], X.max(dim=0)[0]
+    d = ma-mi
+    Xr = (X - mi) / d
+    Xr = (Xr * 2) - 1
+    Xr[Xr != Xr] = 0
+    return Xr
 
 
 def rescale_01(X):
@@ -70,10 +77,12 @@ def rescale_01(X):
     #        X[:,i] = (X[:,i] - mi_v)/(ma_v-mi_v)
     #return X
 
-    mi, ma = np.min(X,axis=0), np.max(X,axis=0)
+    X = check_X(X)
+    mi, ma = X.min(dim=0)[0], X.max(dim=0)[0]
     d = ma-mi
-    np.putmask(d, d == 0, 1)
-    return (X - mi) / d
+    Xr = (X - mi) / d
+    Xr[Xr != Xr] = 0
+    return Xr
 
 
 def centering(X):
@@ -90,9 +99,10 @@ def centering(X):
          the centered version of *X*.
     """
     
-    n = X.shape[0]
-    uno = np.ones((n,1))
-    Xm = 1.0/n * np.dot(uno.T,X)
-    return X - np.dot(uno,Xm)
+    X = check_X(X)
+    n = X.size()[0]
+    uno = torch.ones((n,1))
+    Xm = 1.0/n * uno.T @ X
+    return X - uno @ Xm
 
 

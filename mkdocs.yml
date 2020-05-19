@@ -4,30 +4,45 @@ repo_name: "GitHub"
 site_description: "Code documenation for MKLpy"
 site_author: "Lauriola Ivano"
 
+#material journal readthedocs
 theme: 
-  name: readthedocs
+  name: material
   palette:
-    primary: 'red'
+    primary: 'blue'
     accent: 'indigo'
+  titles_only: true
 
-#readthedocs material
 
 nav:
   - Home: index.md
   - About: about.md
-  - FAQ: faq.md
+  #- FAQ: faq.md
   - DOCUMENTATION:
-    - Algorithms: algorithms.md
-    - Generators: generators.md
-    - Callbacks: callbacks.md
-    - Scheduler: scheduler.md
-  - EXAMPLES: 
-    - Basic usage: examples_basic.md
-    - Training   : examples_training.md
+    - Work in progress...: 404.md
+    #- Algorithms: algorithms.md
+    #- Generators: generators.md
+    #- Callbacks: callbacks.md
+    #- Scheduler: scheduler.md
+  - TUTORIALS: 
+    - Get started: examples/examples_loading.md
+    - Kernels computation: examples/examples_kernels.md
+    - Evaluating a kernel : examples/examples_evaluation.md
+    - Efficient generators: examples/examples_generators.md
+    - Training   : examples/examples_training.md
   - PROJECTS:
-    - KerNET: proj_kernet.md
+    - KerNET: examples/proj_kernet.md
   
 
 
 markdown_extensions:
   - admonition
+  - pymdownx.superfences
+  - pymdownx.arithmatex
+  - codehilite:
+      linenums: true
+
+extra_javascript:
+  - https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML
+
+extra_css:
+  - stylesheets/extra.css

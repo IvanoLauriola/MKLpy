@@ -11,21 +11,25 @@ This file is distributed with the GNU General Public License v3 <http://www.gnu.
 
 from .base import MKL, Solution
 from ..arrange import average
-from ..utils.misc import uniform_vector
 from sklearn.svm import SVC
-import numpy as np
+import torch
 
 
 class AverageMKL(MKL):
 
 	def __init__(self, learner=SVC(C=1000), multiclass_strategy='ova', verbose=False):
-		super().__init__(learner=learner, multiclass_strategy=multiclass_strategy, verbose=verbose)
+		super().__init__(
+			learner=learner, 
+			multiclass_strategy=multiclass_strategy, 
+			verbose=verbose)
+		
 		#set other params
 		self.func_form = average
 
 
 	def _combine_kernels(self):
-		w = uniform_vector(self.n_kernels)
+		n = self.n_kernels
+		w = torch.ones(n)/n
 		return Solution(
 			weights		= w,
 			objective	= None,
