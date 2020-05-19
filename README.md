@@ -1,6 +1,9 @@
 MKLpy
 =====
 
+[![PyPI version](https://badge.fury.io/py/MKLpy.svg)](https://badge.fury.io/py/MKLpy)
+[![Documentation Status](https://readthedocs.org/projects/mklpy/badge/?version=latest)](https://mklpy.readthedocs.io/en/latest/?badge=latest)
+
 
 **MKLpy** is a framework for Multiple Kernel Learning (MKL)  inspired by the [scikit-learn](http://scikit-learn.org/stable) project.
 
@@ -13,7 +16,6 @@ This package contains:
 
 The documentation of MKLpy is available on [readthedocs.io](https://mklpy.readthedocs.io/en/latest/)!
 
-[![Documentation Status](https://readthedocs.org/projects/mklpy/badge/?version=latest)](https://mklpy.readthedocs.io/en/latest/?badge=latest)
 
 
 Installation
