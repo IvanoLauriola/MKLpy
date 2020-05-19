@@ -20,7 +20,7 @@ from ..utils.exceptions import BinaryProblemError
 
 from cvxopt import matrix, spdiag, solvers
 import torch
- 
+import numpy as np
 
  
  
