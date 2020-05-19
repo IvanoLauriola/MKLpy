@@ -25,18 +25,19 @@ pip install MKLpy
 
 To work properly, **MKLpy** requires:
 
-| resource       | website |
-| ------       | ------ |
+| Resource     | Website |
+| ------       | ------- |
 | numpy        | [https://www.numpy.org/](https://www.numpy.org/) |
+| PyTorch      | [https://pytorch.org/](https://pytorch.org/) |
 | scikit-learn | [https://scikit-learn.org/stable/](https://scikit-learn.org/stable/) |
-| cvxopt       | [https://cvxopt.org/](https://cvxopt.org/) |
+| CVXOPT       | [https://cvxopt.org/](https://cvxopt.org/) |
 
 
 Examples
 --------
 The folder *examples* contains several scripts and snippets of codes to show the potentialities of **MKLpy**. The examples show how to train a classifier, how to process data, and how to use kernel functions.
-Currently, we ware working for a complete documentation.
 
+Additionally, you may read our [tutorials](https://mklpy.readthedocs.io/en/latest/)
 
 
 Work in progress
