@@ -10,7 +10,7 @@ setup(
   version = '0.5',
   install_requires=[
         "numpy",
-        "torch"
+        "torch",
         "cvxopt",
         "scikit-learn"
   ],
