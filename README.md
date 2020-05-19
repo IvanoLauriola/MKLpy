@@ -13,7 +13,7 @@ This package contains:
 
 The documentation of MKLpy is available on [readthedocs.io](https://mklpy.readthedocs.io/en/latest/)!
 
-[![Documentation Status](https://readthedocs.org/projects/mklpy/badge/?version=latest&style=plastic)](https://mklpy.readthedocs.io/en/latest/?badge=latest&style=plastic)
+[![Documentation Status](https://readthedocs.org/projects/mklpy/badge/?version=latest)](https://mklpy.readthedocs.io/en/latest/?badge=latest)
 
 
 Installation
