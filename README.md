@@ -45,8 +45,7 @@ Work in progress
 **MKLpy** is under development! We are working to integrate several features, including:
 * further MKL algorithms, such as GRAM, MEMO, and SimpleMKL;
 * more kernels for structured data;
-* incremental generators of kernels;
-* [tensorflow](https://www.tensorflow.org/) as backend **!**
+* efficient optimization
 
 
 
