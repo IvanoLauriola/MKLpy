@@ -4,6 +4,20 @@ repo_name: "GitHub"
 site_description: "Code documenation for MKLpy"
 site_author: "Lauriola Ivano"
 
+markdown_extensions:
+  - admonition
+  - pymdownx.superfences
+  - pymdownx.arithmatex
+  - codehilite:
+      linenums: true
+
+extra_javascript:
+  - https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML
+
+extra_css:
+  - stylesheets/extra.css
+
+
 #material journal readthedocs
 theme: 
   name: material
@@ -34,15 +48,3 @@ nav:
   
 
 
-markdown_extensions:
-  - admonition
-  - pymdownx.superfences
-  - pymdownx.arithmatex
-  - codehilite:
-      linenums: true
-
-extra_javascript:
-  - https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML
-
-extra_css:
-  - stylesheets/extra.css
