@@ -15,14 +15,21 @@ KL_te = [hpk(Xte,Xtr, degree=d) for d in range(1,11)]
 This solution is really simple, but it leads to two big problems:
 
 * This specific computation is not efficient at all. Each homogeneous polynomial kernel $k(x,z) = \langle x,z\rangle^d$ requires two main operations, the dot product between examples and the explonentiation.
-However, the result of the dot-product may be easily cached and used for the whole list of kernels.
+It is easy to see that the exponentiation needs to be recomputed for each base kernels, but the result of the dot-product may be easily cached and reused for the whole list of kernels. 
 * When dealing with large datasets, the available amount of memory may not be sufficient to handle the whole kernels list.
 
 !!! note
 	Note that the caching is not doable for every possible kernels list
 
-In order to alleviate these problems, we provide specific kernels generators.
-The same homogeneous polynomial kernels may be computed as
+
+- - -
+
+## Generators
+
+
+In order to alleviate these problems, we provide specific kernels generators providing an efficient computations and a lower memory consumption.
+
+The same homogeneous polynomial kernels showed in the previous example may be computed with a generator:
 
 ```python
 from MKLpy.generators import HPK_generator
@@ -62,6 +69,31 @@ X3 = ...
 X4 = ...
 KL_multi = Multiview_generator([X1, X2, X3, X4], kernel=pairwise.linear)
 ```
+
+
+- - -
+
+## Benchmarking
+
+In the Table below we show the time and memory consumption required by EasyMKL with 20 homogeneous polynomial kernels applied to two datasets, *Madelon* and *Phishing*.
+
+
+|Dataset | examples x features | list | generator w. cache | generator |
+|--------|--------------------|------|--------------------|-----------|
+|Madelon | 6000     x 5000     | 24.4[s], 7.3[GB]   | 28.0[s], 2.6[GB]  | 60.5[s], 2.3[GB]  |
+|Phishing| 11055    x 68       | 115.7[s], 23.9[GB] | 120.4[s], 6.2[GB] | 126.8[s], 5.7[GB] |
+
+
+**TL;DR** Specifically, we show the resources usage when dealing with explicit lists of kernels and MKLpy generators. 
+The values include the kernels computation and the algorithm training.
+What is striking from the table is the huge improvement in memory consumption (x3.2 and x4.2 reduction with *Madelon* and *Phishing* respectively), that is the main limitation of MKL algorithms. 
+
+Additionally, the benefits of the caching mechanism, that in the case of HPKs consists of a pre-computation of a linear kernel, are evident, especially in the case of *Madelon* dataset where the computation of the dot-product is particularly demanding.
+
+
+!!! see "Datasets"
+	The datasets used in this experiment are freely available on <br>
+	https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/
 
 - - - 
 

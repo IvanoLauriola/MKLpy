@@ -11,7 +11,7 @@ In this first tutorial, we'll show preliminaries and methods to read and preproc
 - - -
 
 
-### Loading data
+## Loading data
 
 
 In the simplest case, datasets can be loaded by means of popular scikit-learn routines, that are able to read files in the `svmlight` format, returning a `ndarray`.
@@ -43,7 +43,7 @@ List-ceptions `[[row_1],...,[row_n]]` are also accepted. However, everything wil
 
 - - -
 
-### Preprocessing
+## Preprocessing
 
 MKLpy provides several tools to pre-process input data, here summarized.
 
