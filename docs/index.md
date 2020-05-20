@@ -1,8 +1,18 @@
+
+
 # MKLpy
+
+
+
+
+
+
 
 
 **MKLpy** is a framework for **M**ultiple **K**ernel **L**earning (MKL)  inspired by the [scikit-learn](http://scikit-learn.org/stable) project.
 The library encapsulates *everything you need* to run MKL algorithms, from the kernels computation to the final evaluation.
+
+<img src="./resources/mklpy_logo.svg" class="center">
 
 
 MKLpy contains:

@@ -8,3 +8,10 @@
 .md-nav__item--active {
 	background-color: #cef;
 }
+
+.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 40%;
+}
