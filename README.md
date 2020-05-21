@@ -5,7 +5,6 @@ MKLpy
 [![Documentation Status](https://readthedocs.org/projects/mklpy/badge/?version=latest)](https://mklpy.readthedocs.io/en/latest/?badge=latest)
 [![PyPI version](https://badge.fury.io/py/MKLpy.svg)](https://badge.fury.io/py/MKLpy)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-![https://img.shields.io/badge/python-3.6|3.7|3.8-blue]
 
 
 **MKLpy** is a framework for Multiple Kernel Learning (MKL)  inspired by the [scikit-learn](http://scikit-learn.org/stable) project.
