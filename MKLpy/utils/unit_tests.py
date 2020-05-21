@@ -2,7 +2,7 @@
 
 
 import sys
-sys.path.append("../..")
+#sys.path.append("../..")
 
 import unittest
 import torch
@@ -10,17 +10,17 @@ from sklearn.datasets import load_breast_cancer, load_iris, load_digits
 from sklearn.metrics import pairwise as pairwise_sk
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
-from MKLpy import preprocessing
-from MKLpy import callbacks
-from MKLpy import metrics
-from MKLpy import multiclass
-from MKLpy.scheduler import ReduceOnWorsening
-from MKLpy.metrics import pairwise as pairwise_mk
-from MKLpy import algorithms
-from MKLpy.utils.exceptions import SquaredKernelError, InvalidKernelsListError, BinaryProblemError
-from MKLpy.utils import misc
-from MKLpy.generators import HPK_generator, RBF_generator, Lambda_generator, Multiview_generator
-from MKLpy.arrange import average
+from .. import preprocessing
+from .. import callbacks
+from .. import metrics
+from .. import multiclass
+from ..scheduler import ReduceOnWorsening
+from ..metrics import pairwise as pairwise_mk
+from .. import algorithms
+from .exceptions import SquaredKernelError, InvalidKernelsListError, BinaryProblemError
+from . import misc
+from ..generators import HPK_generator, RBF_generator, Lambda_generator, Multiview_generator
+from ..arrange import average
 
 
 
