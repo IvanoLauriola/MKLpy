@@ -1,8 +1,9 @@
 MKLpy
 =====
 
-[![Build Status](https://travis-ci.com/IvanoLauriola/MKLpy.svg?branch=master)](https://travis-ci.com/IvanoLauriola/MKLpy)
 [![Documentation Status](https://readthedocs.org/projects/mklpy/badge/?version=latest)](https://mklpy.readthedocs.io/en/latest/?badge=latest)
+[![Build Status](https://travis-ci.com/IvanoLauriola/MKLpy.svg?branch=master)](https://travis-ci.com/IvanoLauriola/MKLpy)
+[![Coverage Status](https://coveralls.io/repos/github/IvanoLauriola/MKLpy/badge.svg?branch=master)](https://coveralls.io/github/IvanoLauriola/MKLpy?branch=master)
 [![PyPI version](https://badge.fury.io/py/MKLpy.svg)](https://badge.fury.io/py/MKLpy)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
