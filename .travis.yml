@@ -9,7 +9,7 @@ install:
   - pip install coveralls
   
 script:
-  - python -m MKLpy.utils.unit_tests
+  - coverage run --source MKLpy tests\unit_tests.py
 
 after_success:
   - coveralls
