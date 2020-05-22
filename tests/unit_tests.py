@@ -2,7 +2,7 @@
 
 
 import sys
-sys.path.append("..\\MKLpy")
+sys.path.append("../MKLpy")
 
 import unittest
 import torch
