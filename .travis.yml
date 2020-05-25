@@ -7,9 +7,11 @@ python:
 install:
   - pip install -r requirements.txt
   - pip install coveralls
+  - pip install pytest
+  - pip install pytest-cov
   
 script:
-  - coverage run --source MKLpy tests\unit_tests.py
+  - pytest tests/unit_tests.py --cov=MKLpy
 
 after_success:
   - coveralls
