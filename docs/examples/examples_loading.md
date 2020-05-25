@@ -23,7 +23,8 @@ ds = load_breast_cancer()
 X,Y = ds.data, ds.target
 
 from sklearn.datasets import load_svmlight_file
-X,Y = load_svmlight_file('dataset_path.svmlight')
+file_path = ... # <- insert the file path you want to read
+X,Y = load_svmlight_file(file_path)
 X = X.toarray()	#be sure your ndarray is not sparse!
 ```
 
@@ -31,21 +32,21 @@ Otherwise, you can use different reading tools, such as `torch.load`
 
 ```python 
 import torch
-X, y = torch.load('dataset_path.pt')
+X, y = torch.load(file_path)
 ```
 
 List-ceptions `[[row_1],...,[row_n]]` are also accepted. However, everything will became a tensor in the MKL pipeline.
 
 
 !!! note
-	Thing get more complicated when dealing with structured data. We'll show some examples in the next tutorials.
+	Things get more complicated when dealing with structured data. We'll show some examples in the next tutorials.
 
 
 - - -
 
 ## Preprocessing
 
-MKLpy provides several tools to pre-process input data, here summarized.
+MKLpy provides several tools to pre-process input data, such as
 
 
 ```python
@@ -58,7 +59,7 @@ X = normalization(X)	#row (example) normalization ||X_i||_2^2 = 1
 !!! warning
 	The  transformations automatically cast the input into tensors.
 
-Alternatively, if you deal with `ndarray`, you can use scikit functionalities, such as
+Alternatively, if you deal with `ndarray`, you can use scikit functionalities
 
 ```python
 from sklearn import preprocessing

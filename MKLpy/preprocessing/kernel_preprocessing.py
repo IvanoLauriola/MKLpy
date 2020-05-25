@@ -40,7 +40,9 @@ def kernel_normalization(K):
     K   = check_K(K)
     n = K.size()[0]
     d = K.diag().view(n,1)
-    return K / (d @ d.T)**0.5
+    K /= (d @ d.T)**0.5
+    K[K!=K] = 0
+    return K
     
 
 def tracenorm(K):

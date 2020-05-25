@@ -43,6 +43,7 @@ nav:
     - Evaluating a kernel : examples/examples_evaluation.md
     - Efficient generators: examples/examples_generators.md
     - Training   : examples/examples_training.md
+    - Model selection   : examples/examples_modelselection.md
   - PROJECTS:
     - KerNET: examples/proj_kernet.md
   

@@ -21,7 +21,7 @@ KLtr, KLte, Ytr, Yte = train_test_split(KL, Y, test_size=.3, random_state=42)
 ```
 
 The interface of MKL algorithms is really similar to estimators in scikit-learn.
-The highlighted line corresponds to the instantiation of a MKL algorithm and the training.
+The highlighted line corresponds to the instantiation of a MKL model and the training.
 
 ```python hl_lines="4"
 from MKLpy.algorithms import AverageMKL
@@ -48,23 +48,17 @@ print ('Accuracy score: %.4f, roc AUC score: %.4f' % (accuracy, roc_auc))
 
 
 
-MKL algorithms have several hyper-parameters, that can be selected with a classical validation procedure. 
-Here we show a few of examples, check the documentation for further details.
+MKL algorithms have several hyper-parameters which can be set in the `__init__` method.
+Here we show an example with EasyMKL, check the documentation for further details.
+
 ```python
 from MKLpy.algorithms import EasyMKL
 mkl = EasyMKL(lam=0.1, learner=svm)	#lam [0,1] is a hyper-parameter of EasyMKL
 mkl = mkl.fit(KLtr, Ytr)
-
-#perhaps we want to use a simple cross-validation...
-from MKLpy.model_selection import cross_val_score
-for lam in lam_values:	#[0, 0.1 ... 0.9, 1]
-	mkl = EasyMKL(lam=lam, learner=svm)
-	scores = cross_val_score(KLtr, Ytr, mkl, n_folds=3, scoring='accuracy')
-	print (scores)	#accuracy for each fold
 ```
 
-
 - - -
+
 
 ## Customizations
 
