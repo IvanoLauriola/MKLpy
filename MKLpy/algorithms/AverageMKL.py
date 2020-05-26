@@ -17,11 +17,22 @@ import torch
 
 class AverageMKL(MKL):
 
-	def __init__(self, learner=SVC(C=1000), multiclass_strategy='ova', verbose=False):
+	def __init__(self, 
+		learner=SVC(C=1000), 
+		multiclass_strategy='ova', 
+		verbose=False,
+		max_iter=-1,
+		tolerance=1e-7,
+		solver='auto'
+		):
 		super().__init__(
 			learner=learner, 
 			multiclass_strategy=multiclass_strategy, 
-			verbose=verbose)
+			verbose=verbose,
+			max_iter=max_iter,
+			tolerance=tolerance,
+			solver=solver,
+		)
 		
 		#set other params
 		self.func_form = average

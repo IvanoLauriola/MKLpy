@@ -35,10 +35,21 @@ class MKL(BaseEstimator, ClassifierMixin):
 	solution   = None 	# solution of the algorithm
 
 
-	def __init__(self, learner, multiclass_strategy, verbose):
+	def __init__(self, 
+		learner, 
+		multiclass_strategy,
+		verbose,
+		max_iter, 
+		tolerance,
+		solver,
+		):
+		
 		self.learner     = learner		# the base learner which uses the combined kernel
 		self.verbose     = verbose 		# logging strategy
 		self.multiclass_strategy = multiclass_strategy # multiclass pattern ('ovo' or 'ovr')
+		self.max_iter    = max_iter		# max number of iterations during optimization
+		self.tolerance   = tolerance	# numerical tolerance
+		self.solver      = solver		# the main solver (libsvm, cvxopt...)
 
 		self.is_fitted   = False
 		self.multiclass_ = None
@@ -117,7 +128,11 @@ class MKL(BaseEstimator, ClassifierMixin):
 	def get_params(self,deep=True):
 		return {"learner":self.learner,
 				"verbose":self.verbose,
-				"multiclass_strategy":self.multiclass_strategy}
+				"multiclass_strategy":self.multiclass_strategy,
+				"max_iter": self.max_iter,
+				"tolerance": self.tolerance,
+				"solver": self.solver,
+				}
 
 
 

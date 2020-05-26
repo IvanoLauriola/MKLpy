@@ -28,18 +28,23 @@ class AlternateMKL(MKL):
 		learner=SVC(C=1000), 
 		multiclass_strategy='ova', 
 		verbose=False,
-		max_iter=1000, 
+		max_iter=-1,
+		tolerance=1e-6, 
+		solver='auto',
 		learning_rate=0.01, 
-		tolerance=1e-7, 
 		callbacks=[], 
 		scheduler=None, 
 		direction='min'
 		):
 
-		super().__init__(learner=learner, multiclass_strategy=multiclass_strategy, verbose=verbose)
-		self.max_iter 		= max_iter
-		self.learning_rate	= learning_rate
-		self.tolerance		= tolerance
+		super().__init__(
+			learner=learner, 
+			multiclass_strategy=multiclass_strategy, 
+			verbose=verbose,
+			max_iter=max_iter,
+			tolerance=tolerance,
+			solver=solver,
+		)
 		self.callbacks		= callbacks
 		self.scheduler		= scheduler
 		self.direction		= direction

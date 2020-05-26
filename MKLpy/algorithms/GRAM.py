@@ -55,8 +55,9 @@ class GRAM(AlternateMKL):
         multiclass_strategy='ova', 
         verbose=False,
         max_iter=1000, 
-        learning_rate=0.01, 
-        tolerance=1e-7, 
+        tolerance=1e-6,
+        solver='auto',
+        learning_rate=0.01,  
         callbacks=[], 
         scheduler=None ):
 
@@ -69,7 +70,8 @@ class GRAM(AlternateMKL):
             callbacks=callbacks,
             scheduler=scheduler, 
             direction='min', 
-            learning_rate=learning_rate, 
+            learning_rate=learning_rate,
+            solver=solver 
         )
         self.func_form = summation
 

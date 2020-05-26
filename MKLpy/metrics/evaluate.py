@@ -16,6 +16,12 @@ assign a value to each kernel in list using the radius of MEB, or the margin.
 
 from cvxopt import matrix,solvers,spdiag
 from ..utils import validation
+from sklearn.svm import SVC
+import torch
+import numpy as np
+
+_solvers = ['cvxopt', 'libsvm']
+
 
 def radius(K):
     """evaluate the radius of the MEB (Minimum Enclosing Ball) of examples in
@@ -31,6 +37,7 @@ def radius(K):
     r : np.float64,
         the radius of the minimum enclosing ball of examples in feature space.
     """
+
     K = validation.check_K(K).numpy()
     n = K.shape[0]
     P = 2 * matrix(K)
@@ -43,24 +50,29 @@ def radius(K):
     sol = solvers.qp(P,p,G,h,A,b)
     return abs(sol['primal objective'])**.5
 
-def margin(K,Y):
-    """evaluate the margin in a classification problem of examples in feature space.
-    If the classes are not linearly separable in feature space, then the
-    margin obtained is 0.
 
-    Note that it works only for binary tasks.
 
-    Parameters
-    ----------
-    K : (n,n) ndarray,
-        the kernel that represents the data.
-    Y : (n) array_like,
-        the labels vector.
-    """
-    K, Y = validation.check_K_Y(K, Y, binary=True)
-    n = Y.size()[0]
+
+def margin(K,Y, return_coefs=False, init_vals=None, solver='cvxopt', max_iter=-1, tol=1e-6):
+
     Y = [1 if y==Y[0] else -1 for y in Y]
-    YY = spdiag(Y)
+    K, Y = validation.check_K_Y(K, Y, binary=True)
+    params = {'K':K, 'Y':Y, 'init_vals':init_vals, 'max_iter':max_iter, 'tol':tol}
+
+    if solver == 'cvxopt':
+    	obj, gamma = _margin_cvxopt(**params)
+    elif solver == 'libsvm':
+    	obj, gamma = _margin_libsvm(**params)
+    else:
+    	raise ValueError('solver not found. Available solvers are:', _solvers)
+    return (obj, gamma) if  return_coefs else obj
+
+
+def _margin_cvxopt(K, Y, init_vals=None, max_iter=-1, tol=1e-6):
+    '''margin optimization with CVXOPT'''
+
+    n = Y.size()[0]
+    YY = spdiag(Y.numpy().tolist())
     P = 2*(YY*matrix(K.numpy())*YY)
     p = matrix([0.0]*n)
     G = -spdiag([1.0]*n)
@@ -69,8 +81,32 @@ def margin(K,Y):
                 [1.0 if Y[j]==-1 else 0 for j in range(n)]]).T
     b = matrix([[1.0],[1.0]],(2,1))
     solvers.options['show_progress']=False
-    sol = solvers.qp(P,p,G,h,A,b)
-    return sol['primal objective']**.5
+    if max_iter > 0:
+    	solvers.options['maxiters']=max_iter
+    solvers.options['abstol']=tol
+    sol = solvers.qp(P,p,G,h,A,b, initvals=init_vals)
+    gamma = torch.Tensor(np.array(sol['x'])).double().T[0]
+    return sol['primal objective']**.5, gamma
+
+
+def _margin_libsvm(K, Y, init_vals=None, max_iter=-1, tol=1e-6):
+    '''margin optimization with libsvm'''
+
+    svm = SVC(C=1e7, kernel='precomputed', tol=tol, max_iter=max_iter).fit(K,Y)
+    n = len(Y)
+    gamma = torch.zeros(n).double()
+    gamma[svm.support_] = torch.tensor(svm.dual_coef_)
+    idx_pos = gamma > 0
+    idx_neg = gamma < 0
+    sum_pos, sum_neg = gamma[idx_pos].sum(), gamma[idx_neg].sum()
+    gamma[idx_pos] /= sum_pos
+    gamma[idx_neg] /= sum_neg
+    gammay = gamma * Y
+    obj = (gammay.view(n,1).T @ K @ gammay).item() **.5
+    return obj, gamma
+
+
+
 
 def ratio(K,Y):
     """evaluate the ratio between the radius of MEB and the margin in feature space.
