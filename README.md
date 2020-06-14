@@ -21,8 +21,8 @@ The main algorithms implemented in this library are
 |Name      | Short description | Source |
 |----------|-------------|--------|
 | AverageMKL | Computes the simple average of base kernels | - |
-| EasyMKL  | Fast and memory efficient algorithm maximizing an approximation of the margin | Aiolli et al. [1](https://www.sciencedirect.com/science/article/abs/pii/S0925231215003653) |
-| GRAM     | Radius/margin optimization of the combined kernel | Lauriola et al. [2](https://www.researchgate.net/profile/Ivano_Lauriola/publication/318468451_Radius-Margin_Ratio_Optimization_for_Dot-Product_Boolean_Kernel_Learning/links/59c39754a6fdcc69b9354011/Radius-Margin-Ratio-Optimization-for-Dot-Product-Boolean-Kernel-Learning.pdf) |
+| EasyMKL  | Fast and memory efficient algorithm maximizing an approximation of the margin | Aiolli et al. [[1]](https://www.sciencedirect.com/science/article/abs/pii/S0925231215003653) |
+| GRAM     | Radius/margin optimization of the combined kernel | Lauriola et al. [[2]](https://www.researchgate.net/profile/Ivano_Lauriola/publication/318468451_Radius-Margin_Ratio_Optimization_for_Dot-Product_Boolean_Kernel_Learning/links/59c39754a6fdcc69b9354011/Radius-Margin-Ratio-Optimization-for-Dot-Product-Boolean-Kernel-Learning.pdf) |
 
 
 
