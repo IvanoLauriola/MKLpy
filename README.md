@@ -11,10 +11,19 @@ MKLpy
 **MKLpy** is a framework for Multiple Kernel Learning (MKL)  inspired by the [scikit-learn](http://scikit-learn.org/stable) project.
 
 This package contains:
-* the implementation of some MKL algorithms, such as EasyMKL;
+* the implementation of some MKL algorithms;
 * tools to operate on kernels, such as normalization, centering, summation, average...;
 * metrics, such as kernel_alignment, radius of Minimum Enclosing Ball, margin between classes, spectral ratio...;
 * kernel functions, including boolean kernels (disjunctive, conjunctive, DNF, CNF) and string kernels (spectrum, fixed length and all subsequences).
+
+
+The main algorithms implemented in this library are
+|Name      | Short description | Source |
+|----------|-------------|--------|
+| AverageMKL | Computes the simple average of base kernels | - |
+| EasyMKL  | Fast and memory efficient algorithm maximizing an approximation of the margin | Aiolli et al. [1](https://www.sciencedirect.com/science/article/abs/pii/S0925231215003653) |
+| GRAM     | Radius/margin optimization of the combined kernel | Lauriola et al. [2](https://www.researchgate.net/profile/Ivano_Lauriola/publication/318468451_Radius-Margin_Ratio_Optimization_for_Dot-Product_Boolean_Kernel_Learning/links/59c39754a6fdcc69b9354011/Radius-Margin-Ratio-Optimization-for-Dot-Product-Boolean-Kernel-Learning.pdf) |
+
 
 
 The documentation of MKLpy is available on [readthedocs.io](https://mklpy.readthedocs.io/en/latest/)!
@@ -29,14 +38,7 @@ Installation
 pip install MKLpy
 ```
 
-To work properly, **MKLpy** requires:
-
-| Resource     | Website |
-| ------       | ------- |
-| numpy        | [https://www.numpy.org/](https://www.numpy.org/) |
-| PyTorch      | [https://pytorch.org/](https://pytorch.org/) |
-| scikit-learn | [https://scikit-learn.org/stable/](https://scikit-learn.org/stable/) |
-| CVXOPT       | [https://cvxopt.org/](https://cvxopt.org/) |
+**MKLpy** leverages multiple scientific libraries, that are [numpy](https://www.numpy.org/), [scikit-learn](https://scikit-learn.org/stable/), [PyTorch](https://pytorch.org/), and [CVXOPT](https://cvxopt.org/).
 
 
 Examples
