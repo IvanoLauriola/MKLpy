@@ -17,13 +17,15 @@ This package contains:
 * kernel functions, including boolean kernels (disjunctive, conjunctive, DNF, CNF) and string kernels (spectrum, fixed length and all subsequences).
 
 
-The main algorithms implemented in this library are
-|Name      | Short description | Source |
-|----------|-------------|--------|
-| AverageMKL | Computes the simple average of base kernels | - |
-| EasyMKL  | Fast and memory efficient algorithm maximizing an approximation of the margin | Aiolli et al. [[1]](https://www.sciencedirect.com/science/article/abs/pii/S0925231215003653) |
-| GRAM     | Radius/margin optimization of the combined kernel | Lauriola et al. [[2]](https://www.researchgate.net/profile/Ivano_Lauriola/publication/318468451_Radius-Margin_Ratio_Optimization_for_Dot-Product_Boolean_Kernel_Learning/links/59c39754a6fdcc69b9354011/Radius-Margin-Ratio-Optimization-for-Dot-Product-Boolean-Kernel-Learning.pdf) |
+The main MKL algorithms implemented in this library are
 
+|Name       |Short description | Status | Source |
+|-----------|------------------|--------|:------:|
+| AverageMKL| Computes the simple average of base kernels         | Available | - |
+| EasyMKL   | Fast and memory efficient margin-based combination  | Available |[[1]](https://www.sciencedirect.com/science/article/abs/pii/S0925231215003653) |
+| GRAM      | Radius/margin ratio optimization                    | Available |[[2]](https://www.researchgate.net/publication/318468451_Radius-Margin_Ratio_Optimization_for_Dot-Product_Boolean_Kernel_Learning)   |
+| SimpleMKL | Alternate margin maximization                       | Work in progress |[[3]](http://www.jmlr.org/papers/volume9/rakotomamonjy08a/rakotomamonjy08a.pdf)|
+| R-MKL     | Radius/margin ratio optimization                    | Work in progress |[[4]](https://link.springer.com/content/pdf/10.1007/978-3-642-04180-8_39.pdf)  |
 
 
 The documentation of MKLpy is available on [readthedocs.io](https://mklpy.readthedocs.io/en/latest/)!
