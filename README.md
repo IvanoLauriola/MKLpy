@@ -53,7 +53,7 @@ Additionally, you may read our [tutorials](https://mklpy.readthedocs.io/en/lates
 Work in progress
 ----------------
 **MKLpy** is under development! We are working to integrate several features, including:
-* further MKL algorithms, such as GRAM, MEMO, and SimpleMKL;
+* additional MKL algorithms;
 * more kernels for structured data;
 * efficient optimization
 
