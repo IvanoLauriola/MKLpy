@@ -17,6 +17,7 @@ from ..utils.validation import check_K
 
 
 
+
 def kernel_normalization(K):
     """normalize a squared kernel matrix
 
@@ -44,6 +45,10 @@ def kernel_normalization(K):
     K[K!=K] = 0
     return K
     
+
+
+
+
 
 def tracenorm(K):
     """normalize the trace of a squared kernel matrix

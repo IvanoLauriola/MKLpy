@@ -101,7 +101,7 @@ def centering(X):
     
     X = check_X(X)
     n = X.size()[0]
-    uno = torch.ones((n,1))
+    uno = torch.ones(n).view(n,1).double()
     Xm = 1.0/n * uno.T @ X
     return X - uno @ Xm
 

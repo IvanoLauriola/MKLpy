@@ -13,10 +13,11 @@ This module contains all boolean kernel functions of MKLpy
 """
 
 import numpy as np
+import torch
 from scipy.special import binom
 from scipy.sparse import issparse
-from sklearn.metrics.pairwise import check_pairwise_arrays
-from sklearn.metrics.pairwise import linear_kernel
+from . import linear_kernel
+from ...utils.validation import check_pairwise_X_Z
 
 
 
@@ -28,9 +29,12 @@ def monotone_conjunctive_kernel(X,Z=None,c=2):
 
 
 def monotone_disjunctive_kernel(X,Z=None,d=2):
-    L = linear_kernel(X,Z)
+    X, Z = check_pairwise_X_Z(X, Z)
+    L = linear_kernel(X,Z).numpy()
     n = X.shape[1]
 
+    X = X.numpy()
+    Z = Z.numpy()
     XX = np.dot(X.sum(axis=1).reshape(X.shape[0],1), np.ones((1,Z.shape[0])))
     TT = np.dot(Z.sum(axis=1).reshape(Z.shape[0],1), np.ones((1,X.shape[0])))
     N_x = n - XX
@@ -41,18 +45,20 @@ def monotone_disjunctive_kernel(X,Z=None,d=2):
     N_x = binom(N_x,d)
     N_t = binom(N_t,d)
     N_xz = binom(N_xz,d)
-    return (N_d - N_x - N_t.T + N_xz)
+    return torch.tensor(N_d - N_x - N_t.T + N_xz)
 
 
 def monotone_dnf_kernel(X,Z=None,d=2,c=2):
-    X, Z = check_pairwise_arrays(X, Z)
+    X, Z = check_pairwise_X_Z(X, Z)
+    X, Z = X.numpy(), Z.numpy()
     n = X.shape[1]
     n_c = binom(n,c)
     XX = np.dot(X.sum(axis=1).reshape(X.shape[0],1), np.ones((1,Z.shape[0])))
-    ZZ = np.dot(T.sum(axis=1).reshape(Z.shape[0],1), np.ones((1,X.shape[0])))
+    ZZ = np.dot(Z.sum(axis=1).reshape(Z.shape[0],1), np.ones((1,X.shape[0])))
     XXc = binom(XX,c)
     ZZc = binom(ZZ,c)
-    return binom(n_c,d) - binom(n_c - XXc, d) - binom(n_c - ZZc.T, d) + binom(my_mdk(X,Z,c),d)
+    K = binom(n_c,d) - binom(n_c - XXc, d) - binom(n_c - ZZc.T, d) + binom(monotone_disjunctive_kernel(X,Z,c).numpy(),d)
+    return torch.tensor(K)
 
 
 def monotone_cnf_kernel(X,Z=None,c=2,d=2):

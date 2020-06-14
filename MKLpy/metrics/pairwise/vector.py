@@ -15,10 +15,11 @@ import torch
 from ...utils.validation import check_pairwise_X_Z
 #from ...ultils import validation as v# import check_pairwise_X_Z
 
-__all__ = ['rbf_kernel']
 
 
-def linear_kernel(X, Z=None):
+
+
+def linear_kernel(X, Z=None, normalize=False):
     """computes the linear kernel between the samples matrices *X* and *Z*.
     The kernel is defined as k(x,z) = <x,z>
     
@@ -34,7 +35,8 @@ def linear_kernel(X, Z=None):
     """
 
     X, Z = check_pairwise_X_Z(X, Z)
-    return X @ Z.T
+    K = X @ Z.T
+    return K if not normalize else autonorm(K, X, Z)
 
 
 def homogeneous_polynomial_kernel(X, Z=None, degree=2):

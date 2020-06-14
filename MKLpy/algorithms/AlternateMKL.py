@@ -48,6 +48,7 @@ class AlternateMKL(MKL):
 		self.callbacks		= callbacks
 		self.scheduler		= scheduler
 		self.direction		= direction
+		self.learning_rate  = learning_rate
 		assert direction in ['min']	#max not supported yet
 
 		self.convergence 	= False

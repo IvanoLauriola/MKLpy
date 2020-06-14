@@ -24,6 +24,7 @@ MKLpy contains:
 The ```examples``` section contains useful snippets of code.
 
 
+
 - - -
 
 ## Installation
@@ -35,7 +36,8 @@ pip install MKLpy
 
 MKLpy requires [pytorch](https://pytorch.org/), [scikit-learn](https://scikit-learn.org/stable/), and [cvxopt](https://cvxopt.org/) installed.
 
-
+!!! warning
+	If you use MKLpy for a scientific purpose, please **cite** this library.
 
 - - -
 
@@ -49,5 +51,11 @@ MKLpy is under development! We are working to integrate several new features, in
 
 
 
-!!! warning
-	If you use MKLpy for a scientific purpose, please **cite** this library.
+## Known issues
+
+* When dealing with normalized kernels, you need to (i) compute the complete kernel matrix (training + test examples) and to (ii) split the matrix into training and test matrices. Currently, you cannot directly compute the normalized kernel for training and test. This is not efficient and it will be fixed in the next releases.
+
+* Some boolean kernels (DNF and CNF kernels) are currently disabled.
+
+* The documentation for developers, containing directives and tools to develop novel algorithms and functionalities, is currently not available.
+

@@ -18,15 +18,33 @@ from cvxopt import spdiag,matrix,solvers
 
 
 class MEMO(AlternateMKL):
+	def __init__(self, 
+		learner=SVC(C=1000), 
+		multiclass_strategy='ova', 
+		verbose=False,
+		max_iter=1000, 
+		tolerance=1e-6,
+		solver='auto',
+		learning_rate=0.01,  
+		callbacks=[], 
+		scheduler=None,
+		theta=0.0 ):
 
-
-	def __init__(self, learner=SVC(C=1000), multiclass_strategy='ova', verbose=False,
-				theta=0.0, max_iter=1000, learning_rate=0.01, callbacks=[]):
-		super().__init__(learner=learner, generator=generator, multiclass_strategy=multiclass_strategy,	
-			max_iter=max_iter, verbose=verbose, callbacks=callbacks)
-		self.theta = theta
+		super().__init__(
+			learner=learner, 
+			multiclass_strategy=multiclass_strategy, 
+			max_iter=max_iter, 
+			verbose=verbose, 
+			tolerance=tolerance,
+			callbacks=callbacks,
+			scheduler=scheduler, 
+			direction='min', 
+			learning_rate=learning_rate,
+			solver=solver 
+		)
 		self.func_form = summation
-		print ('warning: MEMO needs refactoring and parameters chehck, please contact the author if you want to use MEMO')
+		self.theta = theta
+
 
 	def get_params(self, deep=True):
 		new_params = {'theta': self.theta}
@@ -37,7 +55,7 @@ class MEMO(AlternateMKL):
 
 
 	def initialize_optimization(self):
-		Q = np.array([[np.dot(self.KL[r].ravel(),self.KL[s].ravel()) for r in range(self.n_kernels)] for s in range(self.n_kernels)])
+		Q = np.array([[np.dot(self.KL[r].numpy().ravel(),self.KL[s].numpy().ravel()) for r in range(self.n_kernels)] for s in range(self.n_kernels)])
 		Q /= np.sum([frobenius(K)**2 for K in self.KL])
 
 		context = 	{

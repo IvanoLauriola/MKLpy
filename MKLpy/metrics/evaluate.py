@@ -55,8 +55,8 @@ def radius(K):
 
 def margin(K,Y, return_coefs=False, init_vals=None, solver='cvxopt', max_iter=-1, tol=1e-6):
 
-    Y = [1 if y==Y[0] else -1 for y in Y]
     K, Y = validation.check_K_Y(K, Y, binary=True)
+    Y = torch.tensor([1 if y==Y[0] else -1 for y in Y])
     params = {'K':K, 'Y':Y, 'init_vals':init_vals, 'max_iter':max_iter, 'tol':tol}
 
     if solver == 'cvxopt':
