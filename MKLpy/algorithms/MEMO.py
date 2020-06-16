@@ -8,8 +8,7 @@ This file is part of MKLpy: a scikit-compliant framework for Multiple Kernel Lea
 This file is distributed with the GNU General Public License v3 <http://www.gnu.org/licenses/>.  
 
 """
-
-from .AlternateMKL import AlternateMKL
+from . import Solution, Cache, TwoStepMKL
 from ..arrange import average, summation
 from ..metrics import frobenius
 from sklearn.svm import SVC
@@ -17,7 +16,7 @@ import numpy as np
 from cvxopt import spdiag,matrix,solvers
 
 
-class MEMO(AlternateMKL):
+class MEMO(TwoStepMKL):
 	def __init__(self, 
 		learner=SVC(C=1000), 
 		multiclass_strategy='ova', 

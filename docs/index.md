@@ -21,7 +21,20 @@ MKLpy contains:
 * kernel functions (**polynomial**, **boolean** kernels, and **string** kernels);
 * various metrics and tools (kernel_alignment, radius, margin, spectral ratio...)
 
-The ```examples``` section contains useful snippets of code.
+
+The main MKL algorithms implemented in this library are
+
+|Name       |Short description | Status | Source |
+|-----------|------------------|--------|:------:|
+| AverageMKL| Computes the simple average of base kernels         | Available | - |
+| EasyMKL   | Fast and memory efficient margin-based combination  | Available |[[1]](https://www.sciencedirect.com/science/article/abs/pii/S0925231215003653) |
+| GRAM      | Radius/margin ratio optimization                    | Available |[[2]](https://www.researchgate.net/publication/318468451_Radius-Margin_Ratio_Optimization_for_Dot-Product_Boolean_Kernel_Learning)   |
+| SimpleMKL | Alternate margin maximization                       | Work in progress |[[3]](http://www.jmlr.org/papers/volume9/rakotomamonjy08a/rakotomamonjy08a.pdf)|
+| R-MKL     | Radius/margin ratio optimization                    | Work in progress |[[4]](https://link.springer.com/content/pdf/10.1007/978-3-642-04180-8_39.pdf)  |
+
+
+
+The ```Tutorials``` section contains useful snippets of code.
 
 
 

@@ -5,7 +5,7 @@ from . import exceptions
 
 
 def uniform_vector(n):
-    return torch.ones(n)/n
+    return torch.ones(n, dtype=torch.double)/n
 
 
 def onehot_vector(n,idx):
@@ -15,7 +15,7 @@ def onehot_vector(n,idx):
 
 
 def identity_kernel(n):
-    return torch.diag(torch.ones(n))
+    return torch.diag(torch.ones(n,  dtype=torch.double))
 
 
 

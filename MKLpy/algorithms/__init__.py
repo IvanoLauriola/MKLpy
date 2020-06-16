@@ -10,7 +10,7 @@ This file is distributed with the GNU General Public License v3 <http://www.gnu.
 """
 
 
-from .base import MKL
+from .base import MKL, OneStepMKL, TwoStepMKL, Cache, Solution
 from .AverageMKL import AverageMKL
 from .EasyMKL import EasyMKL
 from .GRAM import GRAM
@@ -18,9 +18,10 @@ from .komd import KOMD
 from .MEMO import MEMO
 
 __all__ = [
-    'AlternateMKL',
     'AverageMKL',
     'MKL',
+    'OneStepMKL',
+    'TwoStepMKL',
     'EasyMKL',
     'GRAM',
     'KOMD',

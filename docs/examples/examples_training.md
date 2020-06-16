@@ -1,6 +1,18 @@
 # Training
 
 
+MKLpy provides multiple MKL algorithms that are grouped into two categories, i.e.
+
+* **OneStepMKL**: these algorithms learn the combination weights and the base learner (e.g. a SVM using the combined kernel) in a single pass. Usually, the kernels combination and the base learner training phases are divided.
+* **TwoStepMKL**: these algorithms use an iterative optimization procedure where each iteration updates the combination weights while fixing the base learner parameters, and then updates the base learner parameters while fixing the parameters of the combination. This procedure is repeated until convergence.
+
+These two different strategies are individually implemented in MKLpy. A few examples are shown in the remainder of this tutorial.
+
+
+- - -
+
+## A primer example
+
 Tools and utilities showed in the previous tutorials surround the core of MKLpy, i.e. the multiple kernel learning algorithms.
 In the following, we show a simple procedure to train a classifier from the `MKLpy.algorithms` sub-package.
 
@@ -48,53 +60,80 @@ print ('Accuracy score: %.4f, roc AUC score: %.4f' % (accuracy, roc_auc))
 
 
 
-MKL algorithms have several hyper-parameters which can be set in the `__init__` method.
-Here we show an example with EasyMKL, check the documentation for further details.
 
-```python
-from MKLpy.algorithms import EasyMKL
-mkl = EasyMKL(lam=0.1, learner=svm)	#lam [0,1] is a hyper-parameter of EasyMKL
-mkl = mkl.fit(KLtr, Ytr)
-```
+
+
 
 - - -
 
+## OneStepMKL
 
-## Customizations
+OneStepMKL algorithms are usually faster than other solutions as they need to execute a single optimization step (that may require the solution of a single QP optimization problem).
 
-Sometimes we may need to customize the MKL pipeline, adapting it to our task and our needs.
+Currently, the OneStepMKL algorithms here available are
 
-The first cumization concerns the selection of a different kernel machine working with the combined kernel
+|Name       | Hyper-parameters | Default base learner | Source |
+|-----------|------------|----------------------|:------:|
+| AverageMKL| -          | `sklearn.svm.SVC(C=1000)`          |  -     |
+| EasyMKL   | $\lambda\in [0,1]$  | `MKLpy.algorithms.KOMD(lam=0.1)` | [[1]](https://www.sciencedirect.com/science/article/abs/pii/S0925231215003653) |
+
+
+The main characteristic of OneStepMKL algorithm is that they deal only with the kernels combination. 
+After that step, a classical kernel method (that we call base learner) is required to solve the task with the combined kernel.
+A default base learner is already set, but you can specify a different one when initializing the algorithm.
+
 
 ```python
 from sklearn.svm import SVC
-svm = SVC(C=100)
-mkl = EasyMKL(lam=0.1, learner=svm).fit(KLtr, Ytr)
+base_learner = SVC(C=100)
+
+from MKLpy.algorithms import EasyMKL
+mkl = EasyMKL(lam=0.1, learner=base_learner)
+mkl = mkl.fit(KLtr, Ytr)
 ```
 
-Alternatively, we can use the MKL just to learn the kernels combination, without training a kernel machine
+The same applies for `AverageMKL`
+```python
+from MKLpy.algorithms import AverageMKL
+mkl = AverageMKL(learner=base_learner).fit(KLtr, Ytr)
+```
+
+
+Alternatively, we can use the MKL just to learn the kernels combination, without training the base learner
 
 ```python
-ker_matrix = EasyMKL().combine_kernels(KLtr, Ytr)
+mkl = EasyMKL()
+ker_matrix = mkl.combine_kernels(KLtr, Ytr)
 ```
 
 
 - - -
 
-## Optimization
+## TwoStepMKL
 
 Some MKL algorithms, such as GRAM, rely on an iterative optimization procedure that makes the computation quite heavy.
-We provide tools to control the optimization and to design search strategies by means of **callbacks** and learning rate **scheduler**.
 
+Currently, the TwoStepMKL algorithms here available are
+
+|Name      | Hyper-parameters | Default base learner | Source |
+|----------|------------|----------------------|:------:|
+| GRAM     | -          | `sklearn.svm.SVC(C=1000)`          |  [[2]](https://www.researchgate.net/publication/318468451_Radius-Margin_Ratio_Optimization_for_Dot-Product_Boolean_Kernel_Learning)     |
+
+We provide tools to control the optimization and to design search strategies by means of **callbacks** and learning rate **scheduler**.
 A callback execute a pre-defined set of operations during each iteration, or when the training starts/ends.
-The simplest example of callback is the *EarlyStopping*, that interrupts the optimization when a validation metric worsens.
+Currently, we provide two callbacks, that are
+
+* *EarlyStopping*, that interrupts the optimization when a validation metric worsens;
+* *Monitor*, that monitors some statistics during optimization, such as the objective function and the combination weights.
+
 If you want to define custom callbacks please check the documentation.
 
 ```python
 from MKLpy.algorithms import GRAM
 from MKLpy.scheduler  import ReduceOnWorsening
-from MKLpy.callbacks  import EarlyStopping
+from MKLpy.callbacks  import EarlyStopping, Monitor
 
+monitor   = Monitor()
 earlystop = EarlyStopping(
 	KLva, Yva, 		#validation data, KL is a validation kernels list
 	patience=5,		#max number of acceptable negative steps
@@ -109,13 +148,27 @@ scheduler = ReduceOnWorsening()
 mkl = GRAM(
 	max_iter=1000, 			
 	learning_rate=.01, 		
-	callbacks=[earlystop],
-	scheduler=ReduceOnWorsening()).fit(KLtr, Ytr)
+	callbacks=[earlystop, monitor],
+	scheduler=scheduler).fit(KLtr, Ytr)
+```
+
+
+
+
+Although these algorithms do not need a base learner as they automatically learn both the combination and the base learner parameters, it is possible to specify a custom base learner
+
+```python
+mkl = GRAM(learner=SVC(C=100))
 ```
 
 !!! warning
-	*EarlyStopping* may currently be computationally expensive! You may to set a high cooldown to reduce this problem.
+	If you use *EarlyStopping* with a custom base learner, the training may be computationally expensive! 
+	In that case, the callback needs to train the base learner each iteration in order to do predictions (and thus evaluation). 
+	You may to set a high cooldown to reduce this problem.
 
+
+!!! note
+	Note that the method `.combine_kernels(...)` is not available in TwoStepMKL algorithms.
 
 - - -
 
@@ -152,5 +205,4 @@ If you want to play with different multiclass strategies or if you want to analy
 !!! tip "See also..."
 	If you need further details concerning MKL and decomposition multiclass strategies, see the paper:<br>
 	*Ivano Lauriola et al., "Learning Dot Product Polynomialsfor multiclass problems". ESANN 2017.*
-
 

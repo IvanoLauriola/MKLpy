@@ -9,32 +9,16 @@ This file is distributed with the GNU General Public License v3 <http://www.gnu.
 
 """
 
-from .base import MKL, Solution
+from .base import OneStepMKL, Solution
 from ..arrange import average
 from sklearn.svm import SVC
 import torch
 
 
-class AverageMKL(MKL):
+class AverageMKL(OneStepMKL):
 
-	def __init__(self, 
-		learner=SVC(C=1000), 
-		multiclass_strategy='ova', 
-		verbose=False,
-		max_iter=-1,
-		tolerance=1e-7,
-		solver='auto'
-		):
-		super().__init__(
-			learner=learner, 
-			multiclass_strategy=multiclass_strategy, 
-			verbose=verbose,
-			max_iter=max_iter,
-			tolerance=tolerance,
-			solver=solver,
-		)
-		
-		#set other params
+	def __init__(self, learner=SVC(C=1000), **kwargs):
+		super().__init__(learner=learner, **kwargs)
 		self.func_form = average
 
 

@@ -82,54 +82,11 @@ class TestMKL(unittest.TestCase):
 		self.Xtr, self.Xte, self.Ytr, self.Yte = train_test_split(data.data, data.target, shuffle=True, train_size=50)
 		self.Xtr = preprocessing.normalization(self.Xtr)
 		self.Xte = preprocessing.normalization(self.Xte)
-		self.KLtr = [pairwise_mk.homogeneous_polynomial_kernel(self.Xtr, degree=d) for d in range(1,6)]
-		self.KLte = [pairwise_mk.homogeneous_polynomial_kernel(self.Xte, self.Xtr, degree=d) for d in range(1,6)]
-		self.KLtr_g = HPK_generator(self.Xtr, degrees=range(1,6))
-		self.KLte_g = HPK_generator(self.Xte, self.Xtr, degrees=range(1,6))
+		self.KLtr = [pairwise_mk.homogeneous_polynomial_kernel(self.Xtr, degree=d) for d in range(5,11)] + [misc.identity_kernel(len(self.Xtr))]#.Double()]
+		self.KLte = [pairwise_mk.homogeneous_polynomial_kernel(self.Xte, self.Xtr, degree=d) for d in range(5,11)] + [torch.zeros(len(self.Xte), len(self.Xtr))]#, dtype=torch.double)]
+		self.KLtr_g = HPK_generator(self.Xtr, degrees=range(5,11), include_identity=True)
+		self.KLte_g = HPK_generator(self.Xte, self.Xtr, degrees=range(5,11), include_identity=True)
 
-	def test_AverageMKL(self):
-		self.base_evaluation(algorithms.AverageMKL())
-		self.base_evaluation(algorithms.AverageMKL(learner=SVC(C=10)))
-		self.base_evaluation(algorithms.AverageMKL(learner=algorithms.KOMD(lam=1)))
-
-	def test_EasyMKL(self):
-		self.base_evaluation(algorithms.EasyMKL())
-		self.base_evaluation(algorithms.EasyMKL(learner=SVC(C=10)))
-		self.base_evaluation(algorithms.EasyMKL(learner=algorithms.KOMD(lam=1)))
-
-		
-	def test_GRAM(self):
-		self.base_evaluation(algorithms.GRAM(max_iter=10))
-		self.base_evaluation(algorithms.GRAM(max_iter=10, learner=SVC(C=10)))
-		self.base_evaluation(algorithms.GRAM(max_iter=10, learner=algorithms.KOMD(lam=1)))
-
-
-
-	def test_callbacks(self):
-		earlystop_auc = callbacks.EarlyStopping(
-			self.KLte, 
-			self.Yte, 
-			patience=5, 
-			cooldown=1, 
-			metric='auc')
-		earlystop_acc = callbacks.EarlyStopping(
-			self.KLte, 
-			self.Yte, 
-			patience=3, 
-			cooldown=2, 
-			metric='accuracy')
-		cbks = [earlystop_auc, earlystop_acc]
-		clf = algorithms.GRAM(max_iter=100, learning_rate=.01, callbacks=cbks)
-		clf = clf.fit(self.KLtr, self.Ytr)
-
-	def test_scheduler(self):
-		scheduler = ReduceOnWorsening()
-		clf = algorithms.GRAM(max_iter=10, learning_rate=.01, scheduler=scheduler)\
-			.fit(self.KLtr, self.Ytr)
-		scheduler = ReduceOnWorsening(multiplier=.6, min_lr=1e-4)
-		clf = algorithms.GRAM(max_iter=10, learning_rate=.01, scheduler=scheduler)\
-			.fit(self.KLtr, self.Ytr)
-	
 	def base_evaluation(self, clf):
 		clf = clf.fit(self.KLtr, self.Ytr)
 		w = clf.solution.weights
@@ -147,6 +104,70 @@ class TestMKL(unittest.TestCase):
 		err_clf = clf.__class__(**clf.get_params())
 		self.assertRaises(NotFittedError, err_clf.predict, self.KLte)
 		self.assertRaises(NotFittedError, err_clf.decision_function, self.KLte)
+
+
+class TestAverageMKL(TestMKL):
+
+	def test_AverageMKL(self):
+		self.base_evaluation(algorithms.AverageMKL())
+		self.base_evaluation(algorithms.AverageMKL(learner=SVC(C=10)))
+		self.base_evaluation(algorithms.AverageMKL(learner=algorithms.KOMD(lam=1)))
+
+
+class TestEasyMKL(TestMKL):
+
+	def test_EasyMKL(self):
+		self.base_evaluation(algorithms.EasyMKL())
+		self.base_evaluation(algorithms.EasyMKL(learner=SVC(C=10)))
+		self.base_evaluation(algorithms.EasyMKL(learner=algorithms.KOMD(lam=1)))
+		self.base_evaluation(algorithms.EasyMKL(solver='libsvm', learner=SVC(C=10)))
+
+	def test_parameters(self):
+		self.assertRaises(ValueError, algorithms.EasyMKL, lam=2)
+		self.assertRaises(ValueError, algorithms.EasyMKL, lam=1.01)
+		self.assertRaises(ValueError, algorithms.EasyMKL, lam=-0.1)
+		self.assertRaises(ValueError, algorithms.EasyMKL, solver=0.1)
+		algorithms.EasyMKL(solver='libsvm', lam=0.2)
+
+
+class TestGRAM(TestMKL):
+
+	def test_GRAM(self):
+		self.base_evaluation(algorithms.GRAM(max_iter=10))
+		self.base_evaluation(algorithms.GRAM(max_iter=10, learner=SVC(C=10)))
+		self.base_evaluation(algorithms.GRAM(max_iter=10, learner=algorithms.KOMD(lam=1)))
+
+	def test_callbacks(self):
+		earlystop_auc = callbacks.EarlyStopping(
+			self.KLte, 
+			self.Yte, 
+			patience=30, 
+			cooldown=2, 
+			metric='roc_auc')
+		earlystop_acc = callbacks.EarlyStopping(
+			self.KLte, 
+			self.Yte, 
+			patience=30, 
+			cooldown=2, 
+			metric='accuracy')
+		monitor = callbacks.Monitor(metrics=[metrics.radius, metrics.margin, metrics.frobenius])
+		cbks = [earlystop_auc, earlystop_acc, monitor]
+		clf = algorithms.GRAM(max_iter=60, learning_rate=.001, callbacks=cbks)
+		clf = clf.fit(self.KLtr, self.Ytr)
+		self.assertEqual(len(monitor.history), 3)
+		print (monitor.objective)
+		self.assertEqual(len(monitor.objective), 60)
+	
+	def test_scheduler(self):
+		scheduler = ReduceOnWorsening()
+		clf = algorithms.GRAM(max_iter=20, learning_rate=.01, scheduler=scheduler)\
+			.fit(self.KLtr, self.Ytr)
+		scheduler = ReduceOnWorsening(multiplier=.6, min_lr=1e-4)
+		clf = algorithms.GRAM(max_iter=20, learning_rate=.01, scheduler=scheduler)\
+			.fit(self.KLtr, self.Ytr)
+	
+	
+
 
 
 

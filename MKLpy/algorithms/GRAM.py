@@ -2,14 +2,15 @@
 """
 """
 
-from .AlternateMKL import AlternateMKL, Cache
-from .base import Solution
+
+from . import Solution, Cache, TwoStepMKL
 from ..arrange import average, summation
 from ..utils.misc import uniform_vector
 from sklearn.svm import SVC 
 from cvxopt import matrix, spdiag, solvers
 import numpy as np
 import time,sys 
+import torch
 from ..metrics import ratio
 
 
@@ -48,38 +49,17 @@ def opt_margin(K, YY, init_sol=None):
 
 
 
-class GRAM(AlternateMKL):
+class GRAM(TwoStepMKL):
 
-    def __init__(self, 
-        learner=SVC(C=1000), 
-        multiclass_strategy='ova', 
-        verbose=False,
-        max_iter=1000, 
-        tolerance=1e-6,
-        solver='auto',
-        learning_rate=0.01,  
-        callbacks=[], 
-        scheduler=None ):
+    direction = 'min'
 
-        super().__init__(
-            learner=learner, 
-            multiclass_strategy=multiclass_strategy, 
-            max_iter=max_iter, 
-            verbose=verbose, 
-            tolerance=tolerance,
-            callbacks=callbacks,
-            scheduler=scheduler, 
-            direction='min', 
-            learning_rate=learning_rate,
-            solver=solver 
-        )
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.func_form = summation
 
 
     def get_params(self, deep=True):
-        params = super().get_params()
-        #no additional algorithm-specific parameters
-        return params
+        return super().get_params()
 
 
     def initialize_optimization(self):
@@ -114,10 +94,10 @@ class GRAM(AlternateMKL):
         beta = self._update_grad(self.solution.ker_matrix, YY, beta, alpha, gamma)
 
         w = np.exp(beta)
-        w /= sum(w)
+        w /= w.sum()
         ker_matrix = self.func_form(self.KL, w)
         try :
-            # try warm start in radius/margin reoptimization
+            # try incremental radius/margin optimization
             new_alpha,r2 = opt_radius(ker_matrix   ,init_sol=alpha)
             new_gamma,m2 = opt_margin(ker_matrix,YY,init_sol=gamma)
         except :
@@ -129,6 +109,8 @@ class GRAM(AlternateMKL):
         self.cache.gamma = new_gamma
 
         ker_matrix = self.func_form(self.KL, w)
+
+        self.bias = 0.5 * (self.cache.gamma['x'].T * matrix(np.array(ker_matrix)) * YY * self.cache.gamma['x'])[0]
         return Solution(
             weights=w,
             objective=obj,
@@ -139,17 +121,28 @@ class GRAM(AlternateMKL):
 
     def _update_grad(self,Kc, YY, beta, alpha, gamma):
         n = self.n_kernels
+        gammaY = gamma['x'].T * YY
+        gammaY = torch.DoubleTensor(np.array(gammaY))
+        gamma = torch.DoubleTensor(np.array(gamma['x']))
+        alpha = torch.DoubleTensor(np.array(alpha['x']))
         
-        eb = np.exp(beta)
+        eb = torch.exp(torch.tensor(beta))
         a,b = [], []
-        gammaY = gamma['x'].T*YY
         for K in self.KL:   #optimized for generators
-            K = matrix(K.numpy().astype(np.double))
-            a.append( 1.-(alpha['x'].T*matrix(K)*alpha['x'])[0] )
-            b.append( (gammaY*matrix(K)*gammaY.T)[0] )
-        ebb, eba = np.dot(eb,b), np.dot(eb,a)
-        den = np.dot(eb,b)**2
+            #K = matrix(K.numpy().astype(np.double))
+            #a.append( 1.-(alpha['x'].T*matrix(K)*alpha['x'])[0] )
+            #b.append( (gammaY*matrix(K)*gammaY.T)[0] )
+            a.append(1. - (alpha.T @ K @ alpha).item())
+            b.append( (gammaY @ K @ gammaY.T).item() )
+        a, b = torch.tensor(a,  dtype=torch.double), torch.tensor(b,  dtype=torch.double)
+        ebb, eba = (eb @ b).item(), (eb @ a).item()
+        den = ((eb @ b)**2).item()
         num = [eb[r] * (a[r]*ebb - b[r]*eba) for r in range(n)]
         
         new_beta = np.array([beta[k] - self.learning_rate * (num[k]/den) for k in range(n)])
         return new_beta
+
+    def score(self, KL):
+        Kte = self.func_form(KL, self.solution.weights)
+        ygamma = torch.DoubleTensor(np.array(self.cache.YY * self.cache.gamma['x']))
+        return (Kte @ ygamma - self.bias).view(len(Kte))

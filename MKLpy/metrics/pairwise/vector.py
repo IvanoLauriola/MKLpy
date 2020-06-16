@@ -35,8 +35,7 @@ def linear_kernel(X, Z=None, normalize=False):
     """
 
     X, Z = check_pairwise_X_Z(X, Z)
-    K = X @ Z.T
-    return K if not normalize else autonorm(K, X, Z)
+    return X @ Z.T
 
 
 def homogeneous_polynomial_kernel(X, Z=None, degree=2):

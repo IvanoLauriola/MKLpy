@@ -23,7 +23,7 @@ import numpy as np
 _solvers = ['cvxopt', 'libsvm']
 
 
-def radius(K):
+def radius(K, Y=None):
     """evaluate the radius of the MEB (Minimum Enclosing Ball) of examples in
     feature space.
 
@@ -132,7 +132,7 @@ def ratio(K,Y):
     #return ((radius(K)**2)/(margin(K,Y)**2))/n
 
 
-def trace(K):
+def trace(K, Y=None):
     """return the trace of the kernel as input.
 
     Parameters
@@ -148,7 +148,7 @@ def trace(K):
     K = validation.check_K(K)
     return K.diag().sum().item()
 
-def frobenius(K):
+def frobenius(K, Y=None):
     """return the frobenius-norm of the kernel as input.
 
     Parameters
@@ -164,7 +164,7 @@ def frobenius(K):
     K = validation.check_K(K)
     return ( (K**2).sum()**.5 ).item()
 
-def spectral_ratio(K,norm=True):
+def spectral_ratio(K, Y=None, norm=True):
     """return the spectral ratio of the kernel as input.
 
     Parameters

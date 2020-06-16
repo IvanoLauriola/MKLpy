@@ -87,7 +87,7 @@ class HPK_generator(Generator):
 
     def _get_kernel(self, r):
         L = self.L if self.cache else pairwise.linear_kernel(self.X, self.Z)
-        return L**(r+1)
+        return L**self.degrees[r]
 
 
 
