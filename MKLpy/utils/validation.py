@@ -1,14 +1,11 @@
 # -*- coding: latin-1 -*-
+
 """
-.. codeauthor:: Ivano Lauriola <ivanolauriola@gmail.com>
+@author: Ivano Lauriola
+@email: ivano.lauriola@phd.unipd.it, ivanolauriola@gmail.com
 
-================
-Input validation
-================
-
-.. currentmodule:: MKLpy.utils.validation
-
-This sub-package contains tools to check the input of MKL algorithms.
+This file is part of MKLpy: a scikit-compliant framework for Multiple Kernel Learning
+This file is distributed with the GNU General Public License v3 <http://www.gnu.org/licenses/>.  
 
 """
 

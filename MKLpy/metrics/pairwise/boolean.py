@@ -1,14 +1,11 @@
+# -*- coding: latin-1 -*-
+
 """
-.. codeauthor:: Ivano Lauriola <ivanolauriola@gmail.com>
-.. codeauthor:: Mirko Polato
+@author: Ivano Lauriola
+@email: ivano.lauriola@phd.unipd.it, ivanolauriola@gmail.com
 
-================
-Kernel functions
-================
-
-.. currentmodule:: MKLpy.metrics.pairwise
-
-This module contains all boolean kernel functions of MKLpy
+This file is part of MKLpy: a scikit-compliant framework for Multiple Kernel Learning
+This file is distributed with the GNU General Public License v3 <http://www.gnu.org/licenses/>.  
 
 """
 

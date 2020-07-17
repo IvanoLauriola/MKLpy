@@ -1,15 +1,12 @@
 # -*- coding: latin-1 -*-
+
 """
-@author: Ivano Lauriola and Michele Donini
-@email: ivano.lauriola@phd.unipd.it
- 
-EasyMKL: a scalable multiple kernel learning algorithm
-by Fabio Aiolli and Michele Donini
+@author: Ivano Lauriola
+@email: ivano.lauriola@phd.unipd.it, ivanolauriola@gmail.com
 
 This file is part of MKLpy: a scikit-compliant framework for Multiple Kernel Learning
-This file is distributed with the GNU General Public License v3 <http://www.gnu.org/licenses/>. 
- 
-Paper @ http://www.math.unipd.it/~mdonini/publications.html
+This file is distributed with the GNU General Public License v3 <http://www.gnu.org/licenses/>.  
+
 """
 
 from .base import OneStepMKL, Solution
@@ -60,7 +57,6 @@ class EasyMKL(OneStepMKL):
         assert len(self.Y.unique()) == 2
         Y = torch.tensor([1 if y==self.classes_[1] else -1 for y in self.Y])
         n_sample = len(self.Y)
-        print (self.func_form)
 
         self.func_form(self.KL)
 
@@ -77,10 +73,13 @@ class EasyMKL(OneStepMKL):
         weights = weights / weights.sum()
 
         ker_matrix = self.func_form(self.KL, weights)
+        bias = 0.5 * (gamma @ ker_matrix @ yg).item()
         return Solution(
             weights     = weights,
             objective   = None,
             ker_matrix  = ker_matrix,
+            dual_coef   = None,
+            bias        = None,
             )
 
  
@@ -89,3 +88,6 @@ class EasyMKL(OneStepMKL):
         params = super().get_params()
         params.update({'lam': self.lam})
         return params
+
+    def score(self, KL):
+        raise Error('EasyMKL does not support the score function. Use a scikit-compliant base learner')

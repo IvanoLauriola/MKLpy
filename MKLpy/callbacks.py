@@ -1,3 +1,14 @@
+# -*- coding: latin-1 -*-
+
+"""
+@author: Ivano Lauriola
+@email: ivano.lauriola@phd.unipd.it, ivanolauriola@gmail.com
+
+This file is part of MKLpy: a scikit-compliant framework for Multiple Kernel Learning
+This file is distributed with the GNU General Public License v3 <http://www.gnu.org/licenses/>.  
+
+"""
+
 import numpy as np
 import warnings
 from .algorithms.base import Solution
@@ -67,8 +78,7 @@ class EarlyStopping(Callback):
 	def on_train_begin(self):
 		self.wait = 0
 		self.stopped_epoch = 0
-		self.baseline = None
-		self.best_solution = self.model.solution #initial sol
+		self.best_solution = self.model.solution
 		self.vals = []
 
 		self.scorer, f, self.monitor_op = get_scorer(self.metric, return_direction=True)
@@ -84,11 +94,13 @@ class EarlyStopping(Callback):
 		self.vals.append(current)
 
 
-		if self.monitor_op(current, self.best):
+		if self.monitor_op(current, self.best) or current == self.best:
 			self.best_solution = Solution(
 				weights = self.model.solution.weights,
 				objective = self.model.solution.objective,
 				ker_matrix = self.model.solution.ker_matrix,
+				dual_coef = self.model.solution.dual_coef,
+				bias = self.model.solution.bias,
 				)
 			self.best = current
 			self.wait = 0

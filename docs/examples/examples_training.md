@@ -118,6 +118,8 @@ Currently, the TwoStepMKL algorithms here available are
 |Name      | Hyper-parameters | Default base learner | Source |
 |----------|------------|----------------------|:------:|
 | GRAM     | -          | `sklearn.svm.SVC(C=1000)`          |  [[2]](https://www.researchgate.net/publication/318468451_Radius-Margin_Ratio_Optimization_for_Dot-Product_Boolean_Kernel_Learning)     |
+| R-MKL     | Radius/margin ratio optimization                    | Available |[[3]](https://link.springer.com/content/pdf/10.1007/978-3-642-04180-8_39.pdf)  |
+| MEMO      | Margin maximization and complexity minimization     | Available |[[4]](https://www.elen.ucl.ac.be/Proceedings/esann/esannpdf/es2018-181.pdf) |
 
 We provide tools to control the optimization and to design search strategies by means of **callbacks** and learning rate **scheduler**.
 A callback execute a pre-defined set of operations during each iteration, or when the training starts/ends.

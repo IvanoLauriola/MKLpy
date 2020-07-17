@@ -40,7 +40,7 @@ earlystop = EarlyStopping(
 	Yte, 
 	patience=100,
 	cooldown=1, 
-	metric='auc',
+	metric='roc_auc',
 )
 scheduler = ReduceOnWorsening()
 

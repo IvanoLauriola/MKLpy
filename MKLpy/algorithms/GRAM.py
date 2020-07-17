@@ -1,5 +1,12 @@
 # -*- coding: latin-1 -*-
+
 """
+@author: Ivano Lauriola
+@email: ivano.lauriola@phd.unipd.it, ivanolauriola@gmail.com
+
+This file is part of MKLpy: a scikit-compliant framework for Multiple Kernel Learning
+This file is distributed with the GNU General Public License v3 <http://www.gnu.org/licenses/>.  
+
 """
 
 
@@ -63,7 +70,8 @@ class GRAM(TwoStepMKL):
 
 
     def initialize_optimization(self):
-        YY          = spdiag([1 if y==self.Y[0] else -1 for y in self.Y])
+        YY          = spdiag([1 if y==self.classes_[1] else -1 for y in self.Y])
+        Y           = torch.tensor([1 if y==self.classes_[1] else -1 for y in self.Y])
         weights     = uniform_vector(self.n_kernels)
         ker_matrix  = self.func_form(self.KL, weights)
         alpha,r2    = opt_radius(ker_matrix)
@@ -72,13 +80,19 @@ class GRAM(TwoStepMKL):
 
         #caching
         self.cache.YY = YY
+        self.cache.Y  = Y
         self.cache.alpha = alpha
         self.cache.gamma = gamma
+
+        dual_coef    = torch.Tensor(np.array(gamma['x'])).double().T[0]
+        bias = 0.5 * (dual_coef @ ker_matrix @ (dual_coef.T * Y)).item()
 
         return Solution(
             weights=weights, 
             objective=obj,
             ker_matrix=ker_matrix,
+            dual_coef = dual_coef,
+            bias = bias,
             )
 
         
@@ -110,11 +124,15 @@ class GRAM(TwoStepMKL):
 
         ker_matrix = self.func_form(self.KL, w)
 
-        self.bias = 0.5 * (self.cache.gamma['x'].T * matrix(np.array(ker_matrix)) * YY * self.cache.gamma['x'])[0]
+        dual_coef    = torch.Tensor(np.array(new_gamma['x'])).double().T[0]
+        yg = dual_coef.T * self.cache.Y
+        bias = 0.5 * (dual_coef @ ker_matrix @ yg).item()
         return Solution(
             weights=w,
             objective=obj,
-            ker_matrix=ker_matrix
+            ker_matrix=ker_matrix,
+            dual_coef = dual_coef,
+            bias = bias,
             )
 
         
@@ -141,8 +159,3 @@ class GRAM(TwoStepMKL):
         
         new_beta = np.array([beta[k] - self.learning_rate * (num[k]/den) for k in range(n)])
         return new_beta
-
-    def score(self, KL):
-        Kte = self.func_form(KL, self.solution.weights)
-        ygamma = torch.DoubleTensor(np.array(self.cache.YY * self.cache.gamma['x']))
-        return (Kte @ ygamma - self.bias).view(len(Kte))

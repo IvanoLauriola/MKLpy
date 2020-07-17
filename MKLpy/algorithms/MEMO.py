@@ -2,125 +2,126 @@
 
 """
 @author: Ivano Lauriola
-@email: ivano.lauriola@phd.unipd.it
+@email: ivano.lauriola@phd.unipd.it, ivanolauriola@gmail.com
 
 This file is part of MKLpy: a scikit-compliant framework for Multiple Kernel Learning
 This file is distributed with the GNU General Public License v3 <http://www.gnu.org/licenses/>.  
 
 """
+
 from . import Solution, Cache, TwoStepMKL
 from ..arrange import average, summation
-from ..metrics import frobenius
-from sklearn.svm import SVC
+from ..metrics import frobenius, margin
 import numpy as np
 from cvxopt import spdiag,matrix,solvers
+import torch
+from ..utils.misc import uniform_vector
 
 
 class MEMO(TwoStepMKL):
-	def __init__(self, 
-		learner=SVC(C=1000), 
-		multiclass_strategy='ova', 
-		verbose=False,
-		max_iter=1000, 
-		tolerance=1e-6,
-		solver='auto',
-		learning_rate=0.01,  
-		callbacks=[], 
-		scheduler=None,
-		theta=0.0 ):
 
-		super().__init__(
-			learner=learner, 
-			multiclass_strategy=multiclass_strategy, 
-			max_iter=max_iter, 
-			verbose=verbose, 
-			tolerance=tolerance,
-			callbacks=callbacks,
-			scheduler=scheduler, 
-			direction='min', 
-			learning_rate=learning_rate,
-			solver=solver 
-		)
+	direction = 'max'
+
+	def __init__(self, theta=0.0, min_margin=1e-4, solver='auto', **kwargs):
+		super().__init__(**kwargs)
 		self.func_form = summation
 		self.theta = theta
+		self.min_margin = min_margin
+		
+		self._solver = 'libsvm' if solver in ['auto', 'libsvm'] else 'cvxopt'
 
 
 	def get_params(self, deep=True):
-		new_params = {'theta': self.theta}
+		new_params = {'theta': self.theta,
+				'min_margin':self.min_margin}
 		params = super().get_params()
 		params.update(new_params)
 		return params
 
 
-
 	def initialize_optimization(self):
-		Q = np.array([[np.dot(self.KL[r].numpy().ravel(),self.KL[s].numpy().ravel()) for r in range(self.n_kernels)] for s in range(self.n_kernels)])
-		Q /= np.sum([frobenius(K)**2 for K in self.KL])
+		Q = torch.tensor([[self.KL[j].flatten() @ self.KL[i].flatten() for j in range(self.n_kernels)] for i in range(self.n_kernels)])
+		print (Q.size())
+		Q /= (torch.diag(Q).sum() / self.n_kernels)
 
-		context = 	{
-				'Q'		: Q,
-				'YY'	: spdiag([1 if y==self.Y[0] else -1 for y in self.Y])
-			}
-		incumbent_solution = {'gamma': opt_margin(average(self.KL), context['YY'], None)[2]}
-		weights = np.ones(self.n_kernels)/self.n_kernels
+		self.cache.Q  = Q
+		self.cache.Y  = torch.tensor([1 if y==self.classes_[1] else -1 for y in self.Y])
+
+		weights    = uniform_vector(self.n_kernels)
 		ker_matrix = self.func_form(self.KL, weights)
-		obj = np.inf
-		return obj, incumbent_solution, weights, ker_matrix, context
+		mar, gamma = margin(
+			ker_matrix, self.cache.Y, 
+			return_coefs    = True, 
+			solver          = self._solver, 
+			#max_iter        = self.max_iter*10, 
+			tol             = self.tolerance)
+		yg = gamma.T * self.cache.Y
+
+		self.cache.gamma  = gamma
+		self.cache.margin = mar
+		bias = 0.5 * (gamma @ ker_matrix @ yg).item()
+
+		print (weights.size(), yg.size(), weights.T.size(), yg.T.size(), ker_matrix.size(), Q.size(), len(self.KL))
+
+		obj = (yg.T @ ker_matrix @ yg).item() + (weights @ Q @ weights).item() * self.theta *.5
+		print ('ok')
+		return Solution(
+			weights     = weights,
+			objective   = obj,
+			ker_matrix  = ker_matrix,
+			bias 		= bias,
+			dual_coef   = gamma
+		)
 
 
 	def do_step(self):
-		Kc = self.ker_matrix
-		YY = self.context['YY']
-		Q  = self.context['Q' ]
-		'''
-		try:
-			_margin, _gamma, _sol = opt_margin(Kc, YY, sol)
-		except:
-			return obj, w, None
-		grad = np.array([(self.theta * np.dot(Q[r],w) + (_gamma.T * YY * matrix(self.KL[r]) * YY * _gamma)[0]) \
-				* w[r] * (1 - w[r]) 	for r in range(self.n_kernels)])
+		Y  = self.cache.Y
 
-		_beta = np.log(w) + lr * grad
-		_w = np.exp(_beta)
-		#_w = w + lr * grad
-		_w /= _w.sum()
-		_comp = np.dot(_w,np.dot(_w,Q))
-		_obj = _margin + (self.theta/2) * _comp
+		# positive margin constraint
+		if self.cache.margin <= self.min_margin: # prevents initial negative margin. Looking for a better solution
+			return self.solution
 
-		print(_margin,_comp)
+		# weights update
+		yg = self.cache.gamma.T * Y
+		grad = torch.tensor([self.theta * (qv @ self.solution.weights).item() + (yg.T  @ K @ yg).item()  \
+				for qv,K in zip(self.cache.Q, self.KL)])
+		beta = self.solution.weights#.log()
+		beta = beta + self.learning_rate * grad
+		beta_e = beta#.exp()
 
-		return _obj, _w, _sol
-		'''
-		w = self.weights[:]
-		_gamma = self.incumbent_solution['gamma']['x']
-		grad = np.array([(self.theta * np.dot(Q[r],w) + (_gamma.T * YY * matrix(self.KL[r]) * YY * _gamma)[0]) \
-				* w[r] * (1 - w[r]) 	for r in range(self.n_kernels)])
-		_beta = np.log(w) + self.learning_rate * grad
-		_w = np.exp(_beta)
-		_w /= sum(_w)
-		_margin, _gamma, _sol = opt_margin(Kc, YY, _gamma)
+		weights = beta_e
+		weights[weights<0] = 0
+		weights /= sum(beta_e)
 
-		ker_matrix = self.func_form(self.KL, _w)
-		if _margin < 1e-4:
-			return self.obj, self.incumbent_solution, self.weights, self.ker_matrix
+		# compute combined kernel
+		ker_matrix = self.func_form(self.KL, weights)
 
-		_comp = np.dot(_w,np.dot(_w,Q))
-		_obj = _margin + (self.theta/2) * _comp
-		incumbent_solution = {'gamma': _sol}
-		return _obj, incumbent_solution, _w, ker_matrix
+		# margin (and gamma) update
+		mar, gamma = margin(
+			ker_matrix, Y, 
+			return_coefs    = True, 
+			solver          = self._solver, 
+			#max_iter        = self.max_iter, 
+			tol             = self.tolerance)
 
+		# positive margin constraint
+		if mar <= self.min_margin:
+			return self.solution
 
-def opt_margin(K,YY,init_sol=None):
-	'''optimized margin evaluation'''
-	n = K.shape[0]
-	P = 2 * (YY * matrix(K) * YY)
-	p = matrix([0.0]*n)
-	G = -spdiag([1.0]*n)
-	h = matrix([0.0]*n)
-	A = matrix([[1.0 if YY[i,i]==+1 else 0 for i in range(n)],
-				[1.0 if YY[j,j]==-1 else 0 for j in range(n)]]).T
-	b = matrix([[1.0],[1.0]],(2,1))
-	solvers.options['show_progress']=False
-	sol = solvers.qp(P,p,G,h,A,b,initvals=init_sol)	
-	margin2 = sol['primal objective']
-	return margin2, sol['x'], sol
+		# compute objective and bias
+		yg = gamma.T * Y
+
+		obj = (yg.T @ ker_matrix @ yg).item() + self.theta *.5 * (weights.view(1,len(weights)) @ self.cache.Q @ weights).item()
+		bias = 0.5 * (gamma @ ker_matrix @ yg).item()
+
+		#update cache
+		self.cache.gamma  = gamma
+		self.cache.margin = mar
+		
+		return Solution(
+			weights    = weights,
+			objective  = obj,
+			ker_matrix = ker_matrix,
+            dual_coef = gamma,
+            bias = bias,
+		)

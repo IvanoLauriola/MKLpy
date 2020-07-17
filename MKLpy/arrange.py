@@ -1,13 +1,11 @@
+# -*- coding: latin-1 -*-
+
 """
-.. codeauthor:: Ivano Lauriola <ivanolauriola@gmail.com>
+@author: Ivano Lauriola
+@email: ivano.lauriola@phd.unipd.it, ivanolauriola@gmail.com
 
-===============
-Arrange Kernels
-===============
-
-.. currentmodule:: MKLpy.arrange
-
-This module contains functions able to combine a list of kernels in a single one.
+This file is part of MKLpy: a scikit-compliant framework for Multiple Kernel Learning
+This file is distributed with the GNU General Public License v3 <http://www.gnu.org/licenses/>.  
 
 """
 

@@ -166,8 +166,87 @@ class TestGRAM(TestMKL):
 		clf = algorithms.GRAM(max_iter=20, learning_rate=.01, scheduler=scheduler)\
 			.fit(self.KLtr, self.Ytr)
 	
-	
 
+class TestMEMO(TestMKL):
+
+	def test_MEMO(self):
+		self.base_evaluation(algorithms.MEMO(max_iter=10))
+		self.base_evaluation(algorithms.MEMO(max_iter=10, learner=SVC(C=10)))
+		self.base_evaluation(algorithms.MEMO(max_iter=10, learner=algorithms.KOMD(lam=1)))
+
+	def test_theta(self):
+		clf = algorithms.MEMO(theta=10, max_iter=30).fit(self.KLtr, self.Ytr)
+		clf = algorithms.MEMO(theta=0.0001, max_iter=30).fit(self.KLtr, self.Ytr)
+
+	def test_callbacks(self):
+		earlystop_auc = callbacks.EarlyStopping(
+			self.KLte, 
+			self.Yte, 
+			patience=30, 
+			cooldown=2, 
+			metric='roc_auc')
+		earlystop_acc = callbacks.EarlyStopping(
+			self.KLte, 
+			self.Yte, 
+			patience=30, 
+			cooldown=2, 
+			metric='accuracy')
+		monitor = callbacks.Monitor(metrics=[metrics.radius, metrics.margin, metrics.frobenius])
+		cbks = [earlystop_auc, earlystop_acc, monitor]
+		clf = algorithms.MEMO(max_iter=60, learning_rate=.1, callbacks=cbks)
+		clf = clf.fit(self.KLtr, self.Ytr)
+		self.assertEqual(len(monitor.history), 3)
+		print (monitor.objective)
+		self.assertEqual(len(monitor.objective), 60)
+	
+	def test_scheduler(self):
+		scheduler = ReduceOnWorsening()
+		clf = algorithms.MEMO(max_iter=20, learning_rate=.1, scheduler=scheduler)\
+			.fit(self.KLtr, self.Ytr)
+		scheduler = ReduceOnWorsening(multiplier=.6, min_lr=1e-4)
+		clf = algorithms.MEMO(max_iter=20, learning_rate=.1, scheduler=scheduler)\
+			.fit(self.KLtr, self.Ytr)
+
+
+class TestRMKL(TestMKL):
+
+	def test_MEMO(self):
+		self.base_evaluation(algorithms.RMKL(max_iter=10))
+		self.base_evaluation(algorithms.RMKL(max_iter=10, learner=SVC(C=10)))
+		self.base_evaluation(algorithms.RMKL(max_iter=10, learner=algorithms.KOMD(lam=1)))
+
+	def test_C(self):
+		clf = algorithms.RMKL(C=10, max_iter=30).fit(self.KLtr, self.Ytr)
+		clf = algorithms.RMKL(C=0.0001, max_iter=30).fit(self.KLtr, self.Ytr)
+
+	def test_callbacks(self):
+		earlystop_auc = callbacks.EarlyStopping(
+			self.KLte, 
+			self.Yte, 
+			patience=30, 
+			cooldown=2, 
+			metric='roc_auc')
+		earlystop_acc = callbacks.EarlyStopping(
+			self.KLte, 
+			self.Yte, 
+			patience=30, 
+			cooldown=2, 
+			metric='accuracy')
+		monitor = callbacks.Monitor(metrics=[metrics.radius, metrics.margin, metrics.frobenius])
+		cbks = [earlystop_auc, earlystop_acc, monitor]
+		clf = algorithms.RMKL(max_iter=60, learning_rate=.1, callbacks=cbks)
+		clf = clf.fit(self.KLtr, self.Ytr)
+		self.assertEqual(len(monitor.history), 3)
+		print (monitor.objective)
+		self.assertEqual(len(monitor.objective), 60)
+	
+	def test_scheduler(self):
+		scheduler = ReduceOnWorsening()
+		clf = algorithms.RMKL(max_iter=20, learning_rate=.1, scheduler=scheduler)\
+			.fit(self.KLtr, self.Ytr)
+		scheduler = ReduceOnWorsening(multiplier=.6, min_lr=1e-4)
+		clf = algorithms.RMKL(max_iter=20, learning_rate=.1, scheduler=scheduler)\
+			.fit(self.KLtr, self.Ytr)
 
 
 

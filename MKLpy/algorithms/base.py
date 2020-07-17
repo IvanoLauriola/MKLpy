@@ -20,10 +20,12 @@ import torch
 
 
 class Solution():
-	def __init__(self, weights, objective, ker_matrix, **kwargs):
+	def __init__(self, weights, objective, ker_matrix, dual_coef, bias, **kwargs):
 		self.weights 	= weights
 		self.objective 	= objective
 		self.ker_matrix = ker_matrix
+		self.dual_coef 	= dual_coef
+		self.bias		= bias
 		self.__dict__.update(kwargs)
 
 class Cache():
@@ -39,7 +41,6 @@ class MKL(BaseEstimator, ClassifierMixin):
 	n_kernels  = None   # the number of kernels used in combination
 	KL 		   = None 	# the kernels list
 	solution   = None 	# solution of the algorithm
-	bias       = None
 
 
 	def __init__(self, 
@@ -61,7 +62,7 @@ class MKL(BaseEstimator, ClassifierMixin):
 		self.classes_    = None
 		if learner:
 			self.learner.kernel = 'precomputed'
-		assert multiclass_strategy in ['ovo', 'ovr', 'ova']
+		assert multiclass_strategy in ['ovo', 'ovr', 'ova'], multiclass_strategy
 
 
 	def _prepare(self, KL, Y):
@@ -142,8 +143,10 @@ class MKL(BaseEstimator, ClassifierMixin):
 				"max_iter": self.max_iter,
 				}
 
-
-
+	def score(self, KL):
+		Kte = self.func_form(KL, self.solution.weights)
+		ygamma = self.solution.dual_coef.T * torch.tensor([1 if y==self.classes_[1] else -1 for y in self.Y])
+		return Kte @ ygamma - self.solution.bias
 
 
 
@@ -172,8 +175,6 @@ class OneStepMKL(MKL):
 		'''implemented in base class, return a kernel'''
 		raise NotImplementedError('This method has to be implemented in the derived class')
 
-	def score(self, KL):
-		raise Exception('You need to specify a base learner to use a one-step MKL algorithm')
 
 
 
@@ -184,8 +185,8 @@ class TwoStepMKL(MKL):
 	convergence = False
 	cache 		= Cache()
 
-	def __init__(self, learning_rate=.01, callbacks=[], scheduler=None, **kwargs):
-		super().__init__(**kwargs)
+	def __init__(self, learning_rate=.01, callbacks=[], scheduler=None, max_iter=1000, **kwargs):
+		super().__init__(max_iter=max_iter, **kwargs)
 		self.learning_rate 	= learning_rate
 		self.callbacks 		= callbacks
 		self.scheduler 		= scheduler
@@ -230,6 +231,7 @@ class TwoStepMKL(MKL):
 
 		step = 0
 		while not self.convergence and step < self.max_iter:
+
 			step += 1
 			for callback in self.callbacks: callback.on_step_begin(step)
 
@@ -249,7 +251,7 @@ class TwoStepMKL(MKL):
 
 			# on_step_end is invoked only when the current step is saved
 			for callback in self.callbacks: callback.on_step_end(step)
-			if improvement < self.tolerance: self.convergence = True
+			#if improvement < self.tolerance: self.convergence = True
 			# end cycle
 
 		for callback in self.callbacks: callback.on_train_end()
@@ -259,6 +261,3 @@ class TwoStepMKL(MKL):
 
 		return self.solution
 
-
-	def score(self, KL):
-		raise NotImplementedError('This method has to be implemented in the derived class')

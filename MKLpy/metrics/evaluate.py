@@ -1,16 +1,11 @@
+# -*- coding: latin-1 -*-
+
 """
-.. codeauthor:: Ivano Lauriola <ivanolauriola@gmail.com>
+@author: Ivano Lauriola
+@email: ivano.lauriola@phd.unipd.it, ivanolauriola@gmail.com
 
-==========
-Evaluation
-==========
-
-.. currentmodule:: MKLpy.metrics.evaluate
-
-This module contains functions that given a kernel returns a value calculated
-with a metric.
-These functions can be used also in heuristic algorithms, for example we can
-assign a value to each kernel in list using the radius of MEB, or the margin.
+This file is part of MKLpy: a scikit-compliant framework for Multiple Kernel Learning
+This file is distributed with the GNU General Public License v3 <http://www.gnu.org/licenses/>.  
 
 """
 
