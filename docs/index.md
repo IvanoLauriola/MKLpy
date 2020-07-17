@@ -34,8 +34,8 @@ The main MKL algorithms implemented in this library are
 | SimpleMKL | Alternate margin maximization                       | Work in progress |[[5]](http://www.jmlr.org/papers/volume9/rakotomamonjy08a/rakotomamonjy08a.pdf)|
 
 
-
-The ```Tutorials``` section contains useful snippets of code.
+!!! see
+	The ```Tutorials``` section contains useful snippets of code to start with MKLpy.
 
 
 
@@ -52,6 +52,7 @@ MKLpy requires [pytorch](https://pytorch.org/), [scikit-learn](https://scikit-le
 
 !!! warning
 	If you use MKLpy for a scientific purpose, please **cite** this library.
+
 
 - - -
 

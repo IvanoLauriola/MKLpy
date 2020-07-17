@@ -46,6 +46,7 @@ nav:
     - Model selection   : examples/examples_modelselection.md
   - PROJECTS:
     - KerNET: examples/proj_kernet.md
+    #- Extreme Spectrum Machine: examples/proj_esm.md
   
 
 
