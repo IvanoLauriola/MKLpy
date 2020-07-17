@@ -57,9 +57,26 @@ K_train = rbf_kernel(Xtr, gamma=.1)
 Boolean kernels are kernel functions specifically designed for binary-valued and categorical (one-hotted) datasets.
 The implicit feature space of these kernels consists of logical formulae, such as conjunctions, disjunctions, or their combinations.
 
+Assuming $n$ be the dimension of feature vectors, boolean kernels available in MKLpy are:
 
-!!! error "Todo"
-	This section is work in progress...
+
+| Kernel function                   | Definition              | Parameters |
+|-----------------------------------|:-----------------------:| -----------|
+| monotone_conjunctive_kernel       | $\binom{\langle x,z \rangle}{c}$   | c: `int` (arity of the conjunctions)  |
+| monotone_disjunctive_kernel       | $\binom{n}{d}-\binom{n-\langle x,x \rangle}{d}-\binom{n-\langle z,z \rangle}{d} +\binom{n-\langle x,x \rangle-\langle z,z \rangle+\langle x,z \rangle}{d}$ | d: `int` (arity of the disjunctions)  |
+
+
+These kernels work only with binary-valued examples, $x\in\{0,1\}^n$.
+You may use boolean kernels with vectorial data if you apply a binarization of the features.
+
+A simple binarized available in MKLpy is `MKLpy.preprocessing.binarization.AverageBinarizer`, that binarizes features by applying a hard-threshold based on the average values of original features.
+
+```python
+from MKLpy.preprocessing.binarization import AverageBinarizer
+X = ... # my original non-binary examples matrix
+binarizer = AverageBinarizer().fit(X)
+X_bin = binarizer.transform(X)
+```
 
 
 

@@ -1,17 +1,16 @@
+# -*- coding: latin-1 -*-
+
 """
-.. codeauthor:: Ivano Lauriola <ivanolauriola@gmail.com>
+@author: Ivano Lauriola
+@email: ivano.lauriola@phd.unipd.it, ivanolauriola@gmail.com
 
-===============
-Arrange Kernels
-===============
-
-.. currentmodule:: MKLpy.arrange
-
-This module contains functions able to combine a list of kernels in a single one.
+This file is part of MKLpy: a scikit-compliant framework for Multiple Kernel Learning
+This file is distributed with the GNU General Public License v3 <http://www.gnu.org/licenses/>.  
 
 """
 
 import torch
+from .utils.validation import check_X
 
 
 def summation (KL, weights = None):
@@ -36,14 +35,15 @@ def summation (KL, weights = None):
     >>> Ksum    = summation(Klist)
     >>> Kwsum   = summation(Klist,weights)
     """
-        
-    K = torch.zeros(KL[0].size(), )
+    
     l = len(KL)
-    weights = torch.ones(l) if weights is None else weights
+    weights = torch.ones(l) if weights is None else weights    
     if l != len(weights):
         raise ValueError('The weights vector and the kernels list are not aligned')
-    for w,ker in zip(weights, KL):
-        K = K + w * ker
+
+    K = check_X(KL[0]) * weights[0]
+    for i in range(1,l):
+        K = K + weights[i] * KL[i]
     return K
 
 
@@ -69,13 +69,14 @@ def multiplication (KL, weights = None):
     >>> Ksum    = multiplication(Klist)
     >>> Kwsum   = multiplication(Klist,weights)
     """
-    K = torch.zeros(KL[0].size(), )
     l = len(KL)
-    weights = torch.ones(l) if weights is None else weights
+    weights = torch.ones(l) if weights is None else weights    
     if l != len(weights):
         raise ValueError('The weights vector and the kernels list are not aligned')
-    for w,ker in zip(weights, KL):
-        K = K * w * ker
+
+    K = check_X(KL[0]) * weights[0]
+    for i in range(1,l):
+        K = K * (weights[i] * KL[i])
     return K
 
 

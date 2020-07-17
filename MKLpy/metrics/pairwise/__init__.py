@@ -14,10 +14,6 @@ This sub-package contains kernel functions, such as:
 
 
 
-from .boolean import             \
-    monotone_conjunctive_kernel, \
-    monotone_disjunctive_kernel, \
-    monotone_dnf_kernel
 
 from .string import                      \
 	spectrum_embedding,                  \
@@ -34,6 +30,10 @@ from .vector import                \
     euclidean_distances,           \
     rbf_kernel
 
+from .boolean import             \
+    monotone_conjunctive_kernel, \
+    monotone_disjunctive_kernel, \
+    monotone_dnf_kernel
 
 
 __all__ = ['homogeneous_polynomial_kernel',

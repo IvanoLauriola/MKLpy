@@ -1,13 +1,11 @@
+# -*- coding: latin-1 -*-
+
 """
-.. codeauthor:: Ivano Lauriola <ivanolauriola@gmail.com>
+@author: Ivano Lauriola
+@email: ivano.lauriola@phd.unipd.it, ivanolauriola@gmail.com
 
-==================
-Regularize Kernels
-==================
-
-.. currentmodule:: MKLpy.regularization
-
-This module contains function that perform a transformation over kernels and samples matrices
+This file is part of MKLpy: a scikit-compliant framework for Multiple Kernel Learning
+This file is distributed with the GNU General Public License v3 <http://www.gnu.org/licenses/>.  
 
 """
 
@@ -101,7 +99,7 @@ def centering(X):
     
     X = check_X(X)
     n = X.size()[0]
-    uno = torch.ones((n,1))
+    uno = torch.ones(n).view(n,1).double()
     Xm = 1.0/n * uno.T @ X
     return X - uno @ Xm
 

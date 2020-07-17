@@ -1,19 +1,18 @@
+# -*- coding: latin-1 -*-
+
 """
-.. codeauthor:: Ivano Lauriola <ivanolauriola@gmail.com>
+@author: Ivano Lauriola
+@email: ivano.lauriola@phd.unipd.it, ivanolauriola@gmail.com
 
-==================
-Regularize Kernels
-==================
-
-.. currentmodule:: MKLpy.regularization
-
-This module contains function that perform a transformation over kernels and samples matrices
+This file is part of MKLpy: a scikit-compliant framework for Multiple Kernel Learning
+This file is distributed with the GNU General Public License v3 <http://www.gnu.org/licenses/>.  
 
 """
 
 import numpy as np
 from ..metrics import trace
 from ..utils.validation import check_K
+
 
 
 
@@ -44,6 +43,10 @@ def kernel_normalization(K):
     K[K!=K] = 0
     return K
     
+
+
+
+
 
 def tracenorm(K):
     """normalize the trace of a squared kernel matrix

@@ -45,7 +45,7 @@ The generators currently available in MKLpy are:
 | Lambda_generator      | generation of different heterogeneous kernels, for instance by mixing polynomial, rbf, and other custom functions | no |
 | HPK_generator         | generation of multiple homogeneous polynomial kernels with different degrees | yes |
 | RBF_generator         | generation of multiple rbf kernels with different gamma values | yes |
-| Multiview_generator   | generation of a specified kernel (e.g. linear) computed to each view of the input data (e.g. audio, video, or text). In this case, we have multiple feature vectors of the same example defining different views | no |
+| Multiview_generator   | generation of a specified kernel (e.g. linear) computed to each view of the input data (e.g. audio, video, or text). In this case, we have multiple feature vectors for the same example defining different views | no |
 
 Various examples are exposed in the following snippet
 
@@ -67,7 +67,14 @@ X1 = ...
 X2 = ...	#each view consists of a specific group of features
 X3 = ...
 X4 = ...
-KL_multi = Multiview_generator([X1, X2, X3, X4], kernel=pairwise.linear)
+KL_multi = Multiview_generator([X1, X2, X3, X4], kernel=pairwise.linear_kernel)
+```
+
+
+If you want to include an identity matrix when dealing with generators, you may simply set a parameter
+
+```python
+KL_hpk = generators.HPK_generator(X, degrees=range(1,6), include_identity=True)
 ```
 
 

@@ -1,11 +1,20 @@
+# -*- coding: latin-1 -*-
 
+"""
+@author: Ivano Lauriola
+@email: ivano.lauriola@phd.unipd.it, ivanolauriola@gmail.com
+
+This file is part of MKLpy: a scikit-compliant framework for Multiple Kernel Learning
+This file is distributed with the GNU General Public License v3 <http://www.gnu.org/licenses/>.  
+
+"""
 
 import torch
 from . import exceptions
 
 
 def uniform_vector(n):
-    return torch.ones(n)/n
+    return torch.ones(n, dtype=torch.double)/n
 
 
 def onehot_vector(n,idx):
@@ -15,7 +24,7 @@ def onehot_vector(n,idx):
 
 
 def identity_kernel(n):
-    return torch.diag(torch.ones(n))
+    return torch.diag(torch.ones(n,  dtype=torch.double))
 
 
 

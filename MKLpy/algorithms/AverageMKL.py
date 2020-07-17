@@ -2,28 +2,23 @@
 
 """
 @author: Ivano Lauriola
-@email: ivano.lauriola@phd.unipd.it
+@email: ivano.lauriola@phd.unipd.it, ivanolauriola@gmail.com
 
 This file is part of MKLpy: a scikit-compliant framework for Multiple Kernel Learning
 This file is distributed with the GNU General Public License v3 <http://www.gnu.org/licenses/>.  
 
 """
 
-from .base import MKL, Solution
+from .base import OneStepMKL, Solution
 from ..arrange import average
 from sklearn.svm import SVC
 import torch
 
 
-class AverageMKL(MKL):
+class AverageMKL(OneStepMKL):
 
-	def __init__(self, learner=SVC(C=1000), multiclass_strategy='ova', verbose=False):
-		super().__init__(
-			learner=learner, 
-			multiclass_strategy=multiclass_strategy, 
-			verbose=verbose)
-		
-		#set other params
+	def __init__(self, learner=SVC(C=1000), **kwargs):
+		super().__init__(learner=learner, **kwargs)
 		self.func_form = average
 
 
@@ -34,6 +29,8 @@ class AverageMKL(MKL):
 			weights		= w,
 			objective	= None,
 			ker_matrix	= self.func_form(self.KL, w),
+			dual_coef = None,
+			bias = None
 			)
 
 

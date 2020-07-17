@@ -1,13 +1,11 @@
+# -*- coding: latin-1 -*-
+
 """
-.. codeauthor:: Ivano Lauriola <ivanolauriola@gmail.com>
+@author: Ivano Lauriola
+@email: ivano.lauriola@phd.unipd.it, ivanolauriola@gmail.com
 
-================
-Kernel functions
-================
-
-.. currentmodule:: MKLpy.metrics.pairwise
-
-This module contains other kernel functions
+This file is part of MKLpy: a scikit-compliant framework for Multiple Kernel Learning
+This file is distributed with the GNU General Public License v3 <http://www.gnu.org/licenses/>.  
 
 """
 
@@ -15,10 +13,11 @@ import torch
 from ...utils.validation import check_pairwise_X_Z
 #from ...ultils import validation as v# import check_pairwise_X_Z
 
-__all__ = ['rbf_kernel']
 
 
-def linear_kernel(X, Z=None):
+
+
+def linear_kernel(X, Z=None, normalize=False):
     """computes the linear kernel between the samples matrices *X* and *Z*.
     The kernel is defined as k(x,z) = <x,z>
     

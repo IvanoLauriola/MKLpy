@@ -1,19 +1,17 @@
 # -*- coding: latin-1 -*-
+
 """
-.. codeauthor:: Ivano Lauriola <ivanolauriola@gmail.com>
+@author: Ivano Lauriola
+@email: ivano.lauriola@phd.unipd.it, ivanolauriola@gmail.com
 
-================
-Input validation
-================
-
-.. currentmodule:: MKLpy.utils.validation
-
-This sub-package contains tools to check the input of MKL algorithms.
+This file is part of MKLpy: a scikit-compliant framework for Multiple Kernel Learning
+This file is distributed with the GNU General Public License v3 <http://www.gnu.org/licenses/>.  
 
 """
 
 from .exceptions import SquaredKernelError, InvalidKernelsListError, BinaryProblemError
-import torch
+from sklearn.metrics import accuracy_score,roc_auc_score
+import torch, numpy as np
 
 
 def check_X(X):
@@ -69,3 +67,19 @@ def check_KL_Y(KL, Y):
     if 'Generator' not in type(KL).__name__:
         _, Y = check_K_Y(KL[0], Y)
     return KL, Y
+
+
+def get_scorer(score, return_direction=False):
+    score = score.lower()
+    if score == 'roc_auc':
+        scorer, f = roc_auc_score, 'decision_function'
+    elif score == 'accuracy':
+        scorer, f = accuracy_score, 'predict'
+    elif score == 'f_score':
+        scorer, f = f1_score, 'predict'
+    else:
+        raise ValueError('%s is not a valid metric. Valid metrics are \'roc_auc\', \'accuracy\', or \'f_score\'.' % score)
+    if return_direction:
+        return scorer, f, np.greater
+    else :
+        return scorer, f
