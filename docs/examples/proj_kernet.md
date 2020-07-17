@@ -1,4 +1,3 @@
-## Kernet
 
 
 This page contains a short description of KerNET, an ensemble system that combines neural networks and MKL. 

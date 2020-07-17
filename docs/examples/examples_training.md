@@ -115,11 +115,22 @@ Some MKL algorithms, such as GRAM, rely on an iterative optimization procedure t
 
 Currently, the TwoStepMKL algorithms here available are
 
-|Name      | Hyper-parameters | Default base learner | Source |
-|----------|------------|----------------------|:------:|
-| GRAM     | -          | `sklearn.svm.SVC(C=1000)`          |  [[2]](https://www.researchgate.net/publication/318468451_Radius-Margin_Ratio_Optimization_for_Dot-Product_Boolean_Kernel_Learning)     |
-| R-MKL     | Radius/margin ratio optimization                    | Available |[[3]](https://link.springer.com/content/pdf/10.1007/978-3-642-04180-8_39.pdf)  |
-| MEMO      | Margin maximization and complexity minimization     | Available |[[4]](https://www.elen.ucl.ac.be/Proceedings/esann/esannpdf/es2018-181.pdf) |
+|Name      | Hyper-parameters | Source |
+|----------|------------|:------:|
+| GRAM     | -          | [[2]](https://www.researchgate.net/publication/318468451_Radius-Margin_Ratio_Optimization_for_Dot-Product_Boolean_Kernel_Learning)     |
+| R-MKL    | $C \ge 0$        |[[3]](https://link.springer.com/content/pdf/10.1007/978-3-642-04180-8_39.pdf)  |
+| MEMO     | $\theta \ge 0$   |[[4]](https://www.elen.ucl.ac.be/Proceedings/esann/esannpdf/es2018-181.pdf) |
+
+Differently from the previous methods, TwoStepMKL algorithms do not need a base learner dealing with the combination. 
+Indeed, these algorithms are designed together with a SVM-based classifier, and they learn the hyper-plane used for doing classification with the kernels combination weights.
+However, you can always specify a different base learner according to your needs ;).
+
+```python
+from MKLpy.algorithms import GRAM, MEMO, RMKL
+from sklearn.svm import SVC
+mkl = MEMO(theta=10)
+mkl = MEMO(theta=10, learner=SVC(C=100))
+```
 
 We provide tools to control the optimization and to design search strategies by means of **callbacks** and learning rate **scheduler**.
 A callback execute a pre-defined set of operations during each iteration, or when the training starts/ends.
@@ -139,8 +150,8 @@ monitor   = Monitor()
 earlystop = EarlyStopping(
 	KLva, Yva, 		#validation data, KL is a validation kernels list
 	patience=5,		#max number of acceptable negative steps
-	cooldown=1, 	#how ofter we run a measurement, 1= every optimization step
-	metric='auc',	#the metric we monitor
+	cooldown=1, 	#how ofter we run a measurement, 1 means every optimization step
+	metric='rocauc',#the metric we monitor, roc_auc or accuracy
 )
 
 #ReduceOnWorsening automatically reduces the 
@@ -156,17 +167,10 @@ mkl = GRAM(
 
 
 
-
-Although these algorithms do not need a base learner as they automatically learn both the combination and the base learner parameters, it is possible to specify a custom base learner
-
-```python
-mkl = GRAM(learner=SVC(C=100))
-```
-
 !!! warning
 	If you use *EarlyStopping* with a custom base learner, the training may be computationally expensive! 
 	In that case, the callback needs to train the base learner each iteration in order to do predictions (and thus evaluation). 
-	You may to set a high cooldown to reduce this problem.
+	You may to set a high cooldown to reduce this problem. Alternatively, you can just use the default base learner.
 
 
 !!! note
