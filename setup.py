@@ -28,4 +28,5 @@ setup(
                  'Topic :: Scientific/Engineering :: Mathematics',
                 ],
   long_description = long_description,
+  long_description_content_type='text/markdown'
 )
