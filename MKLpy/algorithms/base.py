@@ -67,7 +67,6 @@ class MKL(BaseEstimator, ClassifierMixin):
 
 	def _prepare(self, KL, Y):
 		'''preprocess data before training'''
-
 		self.KL, self.Y = check_KL_Y(KL, Y)
 		check_classification_targets(Y)
 		self.n_kernels = len(self.KL)
@@ -95,13 +94,23 @@ class MKL(BaseEstimator, ClassifierMixin):
 		return self
 
 
-
-
 	def _fit(self):
-		raise NotImplementedError('This method has to be implemented in the derived class')
+		self.solution = self._combine_kernels()	# call combine_kernels without re-preprocess
+		if self.learner:
+			self.learner.fit(self.solution.ker_matrix, self.Y)
+		return
+
+	def combine_kernels(self, KL, Y=None):
+		'''only kernels combination, with preprocess'''
+		self._prepare( KL, Y)
+		if self.multiclass_:
+			raise BinaryProblemError("combine_kernels requires binary classification problems")
+		self.solution = self._combine_kernels()
+		return self.solution#.ker_matrix
 
 
-	def score(self, KL):
+	def _combine_kernels(self):
+		'''implemented in base class, return a kernel'''
 		raise NotImplementedError('This method has to be implemented in the derived class')
 
 
@@ -143,10 +152,7 @@ class MKL(BaseEstimator, ClassifierMixin):
 				"max_iter": self.max_iter,
 				}
 
-	def score(self, KL):
-		Kte = self.func_form(KL, self.solution.weights)
-		ygamma = self.solution.dual_coef.T * torch.tensor([1 if y==self.classes_[1] else -1 for y in self.Y])
-		return Kte @ ygamma - self.solution.bias
+	
 
 
 
@@ -158,22 +164,6 @@ class OneStepMKL(MKL):
 		super().__init__(**kwargs)
 		assert self.learner is not None
 
-	def _fit(self):
-		self.solution = self._combine_kernels()	# call combine_kernels without re-preprocess
-		self.learner.fit(self.solution.ker_matrix,self.Y)	# fit the base learner
-		return
-
-	def combine_kernels(self, KL, Y=None):
-		'''only kernels combination, with preprocess'''
-		self._prepare( KL, Y)
-		if self.multiclass_:
-			raise BinaryProblemError("combine_kernels requires binary classification problems")
-		self.solution = self._combine_kernels()
-		return self.solution.ker_matrix
-
-	def _combine_kernels(self):
-		'''implemented in base class, return a kernel'''
-		raise NotImplementedError('This method has to be implemented in the derived class')
 
 
 
@@ -221,7 +211,7 @@ class TwoStepMKL(MKL):
 		raise NotImplementedError('This method has to be implemented in the derived class')
 
 
-	def _fit(self):
+	def _combine_kernels(self):
 
 		self.learning_rate = self.initial_lr
 		self.solution = self.initialize_optimization()
@@ -256,8 +246,11 @@ class TwoStepMKL(MKL):
 
 		for callback in self.callbacks: callback.on_train_end()
 
-		if self.learner:
-			self.learner.fit(self.solution.ker_matrix, self.Y)
 
 		return self.solution
 
+
+	def score(self, KL):
+		Kte = self.func_form(KL, self.solution.weights)
+		ygamma = self.solution.dual_coef.T * torch.tensor([1 if y==self.classes_[1] else -1 for y in self.Y])
+		return Kte @ ygamma - self.solution.bias

@@ -86,7 +86,7 @@ class EasyMKL(OneStepMKL):
     def get_params(self, deep=True):
         # this estimator has parameters:
         params = super().get_params()
-        params.update({'lam': self.lam})
+        params.update({'lam': self.lam, 'solver': self.solver})
         return params
 
     def score(self, KL):

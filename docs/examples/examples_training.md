@@ -173,8 +173,6 @@ mkl = GRAM(
 	You may to set a high cooldown to reduce this problem. Alternatively, you can just use the default base learner.
 
 
-!!! note
-	Note that the method `.combine_kernels(...)` is not available in TwoStepMKL algorithms.
 
 - - -
 

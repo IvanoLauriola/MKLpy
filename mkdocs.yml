@@ -6,6 +6,7 @@ site_author: "Lauriola Ivano"
 
 markdown_extensions:
   - admonition
+  - pymdownx.tabbed
   - pymdownx.superfences
   - pymdownx.arithmatex
   - codehilite:
@@ -25,18 +26,14 @@ theme:
     primary: 'blue'
     accent: 'indigo'
   titles_only: true
+  #features:
+  #  - tabs
 
 
 nav:
   - Home: index.md
   - About: about.md
   #- FAQ: faq.md
-  - DOCUMENTATION:
-    - Work in progress...: 404.md
-    #- Algorithms: algorithms.md
-    #- Generators: generators.md
-    #- Callbacks: callbacks.md
-    #- Scheduler: scheduler.md
   - TUTORIALS: 
     - Get started: examples/examples_loading.md
     - Kernels computation: examples/examples_kernels.md
@@ -44,6 +41,15 @@ nav:
     - Efficient generators: examples/examples_generators.md
     - Training   : examples/examples_training.md
     - Model selection   : examples/examples_modelselection.md
+  - API reference:
+    - MKL: API/MKL.md
+    - AverageMKL: API/AverageMKL.md
+    - EasyMKL: API/EasyMKL.md
+    - GRAM: API/GRAM.md
+    - R-MKL: API/RMKL.md
+    - MEMO: API/MEMO.md
+  - DEVELOPERS:
+    - Contributing: developers/contributing.md
   - PROJECTS:
     - KerNET: examples/proj_kernet.md
     #- Extreme Spectrum Machine: examples/proj_esm.md

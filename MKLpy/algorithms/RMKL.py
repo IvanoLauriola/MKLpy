@@ -28,6 +28,7 @@ class RMKL(TwoStepMKL):
 		self.func_form = summation
 		self.C = C
 		
+		#not currently used
 		self._solver = 'libsvm' if solver in ['auto', 'libsvm'] else 'cvxopt'
 
 
