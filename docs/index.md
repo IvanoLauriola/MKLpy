@@ -50,8 +50,7 @@ pip install MKLpy
 
 MKLpy requires [pytorch](https://pytorch.org/), [scikit-learn](https://scikit-learn.org/stable/), and [cvxopt](https://cvxopt.org/) installed.
 
-!!! warning
-	If you use MKLpy for a scientific purpose, please **cite** this library.
+
 
 
 - - -
@@ -64,7 +63,7 @@ MKLpy is under development! We are working to integrate several new features, in
 * additional kernels for structured data (graphs, trees);
 * efficient optimization
 
-
+- - -
 
 ## Known issues
 
@@ -75,3 +74,19 @@ MKLpy is under development! We are working to integrate several new features, in
 * The documentation for developers, containing directives and tools to develop novel algorithms and functionalities, is currently not available.
 
 * We're fixing some issues related to SimpleMKL. The algorithm will be available in the next weeks.
+
+
+- - -
+
+## Citing MKLpy
+
+If you use MKLpy for a scientific purpose, please **cite** the following preprint.
+
+```
+@article{lauriola2020mklpy,
+  title={MKLpy: a python-based framework for Multiple Kernel Learning},
+  author={Lauriola, Ivano and Aiolli, Fabio},
+  journal={arXiv preprint arXiv:2007.09982},
+  year={2020}
+}
+```

@@ -63,4 +63,13 @@ Work in progress
 
 Citing MKLpy
 ------------
-If you use MKLpy for a scientific purpose, please cite this library.
+If you use MKLpy for a scientific purpose, please **cite** the following preprint.
+
+```
+@article{lauriola2020mklpy,
+  title={MKLpy: a python-based framework for Multiple Kernel Learning},
+  author={Lauriola, Ivano and Aiolli, Fabio},
+  journal={arXiv preprint arXiv:2007.09982},
+  year={2020}
+}
+```
