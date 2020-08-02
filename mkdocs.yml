@@ -49,11 +49,10 @@ nav:
       - GRAM: API/GRAM.md
       - R-MKL: API/RMKL.md
       - MEMO: API/MEMO.md
-    - Callbacks: API/callbacks.md
-  - DEVELOPERS:
-    - Contributing: developers/contributing.md
+    #- Callbacks: API/callbacks.md
+  - Contributing: developers/contributing.md
   - PROJECTS:
-    - KerNET: examples/proj_kernet.md
+    - KerNET: projects/proj_kernet.md
     #- Extreme Spectrum Machine: examples/proj_esm.md
   
 
