@@ -46,6 +46,9 @@ nav:
       - MKL: API/MKL.md
       - AverageMKL: API/AverageMKL.md
       - EasyMKL: API/EasyMKL.md
+      - PWMK: API/PWMK.md
+      - FHeuristic: API/FHeuristic.md
+      - CKA: API/CKA.md
       - GRAM: API/GRAM.md
       - R-MKL: API/RMKL.md
       - MEMO: API/MEMO.md

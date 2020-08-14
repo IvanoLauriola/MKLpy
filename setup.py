@@ -7,7 +7,7 @@ with open("README.md", "r") as fh:
 setup(
   name = 'MKLpy',
   packages = find_packages(exclude=['build', 'docs', 'templates']),
-  version = '0.5.2',
+  version = '0.6',
   install_requires=[
         "numpy",
         "torch",

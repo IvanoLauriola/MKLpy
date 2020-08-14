@@ -51,7 +51,7 @@ def ideal_kernel(Y, T=None):
     pos = Y[0]
     yy = (Y == pos) * 2 - 1
     tt = yy if (T is None) or (T is Y) else (T == pos) * 2 - 1
-    return yy.view(len(yy), 1) @ tt.view(1, len(tt))
+    return (yy.view(len(yy), 1) @ tt.view(1, len(tt))).double()
 
 
 

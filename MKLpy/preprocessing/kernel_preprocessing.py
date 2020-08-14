@@ -10,6 +10,7 @@ This file is distributed with the GNU General Public License v3 <http://www.gnu.
 """
 
 import numpy as np
+import torch
 from ..metrics import trace
 from ..utils.validation import check_K
 
@@ -86,6 +87,6 @@ def kernel_centering(K):
     """
     K = check_K(K)
     N = K.size()[0]
-    I = torch.ones(K.size())
+    I = torch.ones(K.size()).double()
     C = torch.ones(N).diag() - (1.0/N * I)
     return C @ K @ C

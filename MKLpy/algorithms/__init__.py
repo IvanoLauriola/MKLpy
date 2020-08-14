@@ -18,3 +18,5 @@ from .komd import KOMD
 from .MEMO import MEMO
 #from .SimpleMKL import SimpleMKL	available soon
 from .RMKL import RMKL
+from .HeuristicMKL import HeuristicMKL, PWMK, FHeuristic
+from .CKA import CKA

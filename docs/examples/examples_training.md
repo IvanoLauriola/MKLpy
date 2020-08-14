@@ -76,9 +76,11 @@ Currently, the OneStepMKL algorithms here available are
 |-----------|------------|----------------------|:------:|
 | AverageMKL| -          | `sklearn.svm.SVC(C=1000)`          |  -     |
 | EasyMKL   | $\lambda\in [0,1]$  | `MKLpy.algorithms.KOMD(lam=0.1)` | [[1]](https://www.sciencedirect.com/science/article/abs/pii/S0925231215003653) |
+| PWMK      | $\delta\in [0,1]$; cv: int or [cross-val generator](https://scikit-learn.org/stable/glossary.html#term-cv-splitter)   | `sklearn.svm.SVC(C=1000)`|[[5]](https://ieeexplore.ieee.org/abstract/document/4586335) |
+| FHeuristic| - | `sklearn.svm.SVC(C=1000)`|[[6]](https://ieeexplore.ieee.org/abstract/document/4731239) |
+| CKA       | - | `sklearn.svm.SVC(C=1000)`|[[7]](https://static.googleusercontent.com/media/research.google.com/it//pubs/archive/36468.pdf) |
 
-
-The main characteristic of OneStepMKL algorithm is that they deal only with the kernels combination. 
+The main characteristic of OneStepMKL algorithms is that they deal only with the kernels combination. 
 After that step, a classical kernel method (that we call base learner) is required to solve the task with the combined kernel.
 A default base learner is already set, but you can specify a different one when initializing the algorithm.
 

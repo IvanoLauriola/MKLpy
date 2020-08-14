@@ -8,7 +8,7 @@ import unittest
 import torch
 from sklearn.datasets import load_breast_cancer, load_iris, load_digits
 from sklearn.metrics import pairwise as pairwise_sk
-from sklearn.model_selection import train_test_split, LeaveOneOut
+from sklearn.model_selection import train_test_split, LeaveOneOut, KFold
 from sklearn.exceptions import NotFittedError
 from sklearn.svm import SVC
 from MKLpy import preprocessing
@@ -112,6 +112,29 @@ class TestAverageMKL(TestMKL):
 		self.base_evaluation(algorithms.AverageMKL())
 		self.base_evaluation(algorithms.AverageMKL(learner=SVC(C=10)))
 		self.base_evaluation(algorithms.AverageMKL(learner=algorithms.KOMD(lam=1)))
+
+
+class TestHeuristicMKL(TestMKL):
+
+	def test_HeuristicMKL(self):
+		return
+
+	def test_PWMK(self):
+		self.base_evaluation(algorithms.PWMK())
+		self.base_evaluation(algorithms.PWMK(delta=.6, cv=2))
+		cv = KFold(n_splits=5, shuffle=True, random_state=42)
+		self.base_evaluation(algorithms.PWMK(delta=0, cv=cv, learner=SVC(C=100)))
+		self.base_evaluation(algorithms.PWMK(delta=1, learner=algorithms.KOMD(lam=.2)))
+
+	def test_FHeuristic(self):
+		self.base_evaluation(algorithms.FHeuristic(learner=SVC(C=10)))
+		self.base_evaluation(algorithms.FHeuristic(learner=algorithms.KOMD(lam=1)))
+
+class TestCKA(TestMKL):
+
+	def test_CKA(self):
+		self.base_evaluation(algorithms.CKA(learner=SVC(C=10)))
+		self.base_evaluation(algorithms.CKA(learner=algorithms.KOMD(lam=1)))
 
 
 class TestEasyMKL(TestMKL):

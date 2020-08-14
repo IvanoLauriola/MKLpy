@@ -26,6 +26,9 @@ The main MKL algorithms implemented in this library are
 | GRAM      | Radius/margin ratio optimization                    | Available |[[2]](https://www.researchgate.net/publication/318468451_Radius-Margin_Ratio_Optimization_for_Dot-Product_Boolean_Kernel_Learning)   |
 | R-MKL     | Radius/margin ratio optimization                    | Available |[[3]](https://link.springer.com/content/pdf/10.1007/978-3-642-04180-8_39.pdf)  |
 | MEMO      | Margin maximization and complexity minimization     | Available |[[4]](https://www.elen.ucl.ac.be/Proceedings/esann/esannpdf/es2018-181.pdf) |
+| PWMK      | Heuristic based on individual kernels performance   | Avaible   |[[5]](https://ieeexplore.ieee.org/abstract/document/4586335) |
+| FHeuristic| Heuristic based on kernels alignment                | Available |[[6]](https://ieeexplore.ieee.org/abstract/document/4731239) |
+| CKA       | Centered kernel alignment optimization in closed form| Available|[[7]](https://static.googleusercontent.com/media/research.google.com/it//pubs/archive/36468.pdf) |
 | SimpleMKL | Alternate margin maximization                       | Work in progress |[[5]](http://www.jmlr.org/papers/volume9/rakotomamonjy08a/rakotomamonjy08a.pdf)|
 
 
