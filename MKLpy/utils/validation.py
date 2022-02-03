@@ -10,7 +10,7 @@ This file is distributed with the GNU General Public License v3 <http://www.gnu.
 """
 
 from .exceptions import SquaredKernelError, InvalidKernelsListError, BinaryProblemError
-from sklearn.metrics import accuracy_score,roc_auc_score
+from sklearn.metrics import accuracy_score, roc_auc_score, f1_score, precision_score, recall_score, balanced_accuracy_score
 import torch, numpy as np
 
 
@@ -75,10 +75,16 @@ def get_scorer(score, return_direction=False):
         scorer, f = roc_auc_score, 'decision_function'
     elif score == 'accuracy':
         scorer, f = accuracy_score, 'predict'
-    elif score == 'f_score':
+    elif score == 'f1_score':
         scorer, f = f1_score, 'predict'
+    elif score == 'precision_score':
+        scorer, f = precision_score, 'predict'
+    elif score == 'recall_score':
+        scorer, f = recall_score, 'predict'
+    elif score == 'balanced_accuracy_score':
+        scorer, f = balanced_accuracy_score, 'predict'
     else:
-        raise ValueError('%s is not a valid metric. Valid metrics are \'roc_auc\', \'accuracy\', or \'f_score\'.' % score)
+        raise ValueError('%s is not a valid metric. Valid metrics are \'roc_auc\', \'accuracy\', \'f1_score\', \'precision_score\', \'recall_score\', or \'balanced_accuracy_score\'.' % score)
     if return_direction:
         return scorer, f, np.greater
     else :
